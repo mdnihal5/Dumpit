@@ -24,15 +24,10 @@ const settingsRoutes = require("./routes/settings.routes");
 // Create Express app
 const app = express();
 
-// Parse allowed origins from environment variable
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',') 
-  : ['http://localhost:19000', 'http://100.78.134.5:19000', 'exp://100.78.134.5:19000'];
-
 // Apply security middleware
 app.use(helmet());
 app.use(cors({
-  origin: allowedOrigins,
+  origin: true ,
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
