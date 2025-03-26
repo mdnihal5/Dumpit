@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "7a009821-1ce2-481f-b6a0-46df2aff7d86"
+      }
+    },
+    "android": {
+      "package": "com.mdnihal.dumpitfrontend"
+    }
+  }
+}
