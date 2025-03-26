@@ -8,7 +8,7 @@ router.use(protect);
 
 // Customer routes
 router.post("/create-payment-intent", paymentController.createPaymentIntent);
-router.post("/confirm-payment", paymentController.confirmPayment);
+router.post("/verify-payment", paymentController.verifyPayment);
 router.get("/my-payments", paymentController.getMyPayments);
 
 // Admin routes

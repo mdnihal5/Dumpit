@@ -1,78 +1,84 @@
-const admin = require("firebase-admin");
+const nodemailer = require("nodemailer");
 const User = require("../models/user.model");
 
-// Initialize Firebase Admin SDK
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    }),
-  });
-}
+// Configure Nodemailer
+const transporter = nodemailer.createTransport({
+  service: process.env.EMAIL_SERVICE,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
 
 /**
- * Send push notification to a specific user
+ * Send email notification to a specific user
  * @param {String} userId - User ID to send notification to
  * @param {Object} notification - Notification content
  * @param {String} notification.title - Notification title
  * @param {String} notification.body - Notification body
  * @param {Object} data - Additional data to send with notification
- * @returns {Promise<Object>} - FCM response
+ * @returns {Promise<Object>} - Email response
  */
 exports.sendNotificationToUser = async (userId, notification, data = {}) => {
   try {
-    // Get user's FCM token
+    // Get user's email
     const user = await User.findById(userId);
 
-    if (!user || !user.fcmToken) {
-      console.log(`No FCM token found for user ${userId}`);
+    if (!user || !user.email) {
+      console.log(`No email found for user ${userId}`);
       return null;
     }
 
-    // Prepare message
-    const message = {
-      token: user.fcmToken,
-      notification: {
-        title: notification.title,
-        body: notification.body,
-      },
-      data: data,
-      android: {
-        notification: {
-          sound: "default",
-          click_action: "FLUTTER_NOTIFICATION_CLICK",
+    // Store notification in database
+    await user.updateOne({
+      $push: {
+        notifications: {
+          title: notification.title,
+          body: notification.body,
+          data: data,
+          isRead: false,
+          createdAt: new Date(),
         },
       },
-      apns: {
-        payload: {
-          aps: {
-            sound: "default",
-          },
-        },
-      },
+    });
+
+    // Format HTML email
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+        <h2 style="color: #4a90e2;">${notification.title}</h2>
+        <p style="font-size: 16px; line-height: 1.5;">${notification.body}</p>
+        ${data.actionUrl ? `<a href="${data.actionUrl}" style="display: inline-block; background-color: #4a90e2; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; margin-top: 15px;">View Details</a>` : ''}
+        <p style="margin-top: 30px; font-size: 14px; color: #777;">Thank you for using DumpIt</p>
+      </div>
+    `;
+
+    // Prepare mail options
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to: user.email,
+      subject: notification.title,
+      html: htmlContent,
     };
 
-    // Send message
-    const response = await admin.messaging().send(message);
-    console.log(`Notification sent to user ${userId}:`, response);
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`Email sent to user ${userId}:`, info.messageId);
 
-    return response;
+    return info;
   } catch (error) {
-    console.error("Error sending notification:", error);
+    console.error("Error sending email notification:", error);
     return null;
   }
 };
 
 /**
- * Send push notification to multiple users
+ * Send email notification to multiple users
  * @param {Array} userIds - Array of user IDs to send notification to
  * @param {Object} notification - Notification content
  * @param {String} notification.title - Notification title
  * @param {String} notification.body - Notification body
  * @param {Object} data - Additional data to send with notification
- * @returns {Promise<Object>} - FCM response
+ * @returns {Promise<Array>} - Array of email responses
  */
 exports.sendNotificationToMultipleUsers = async (
   userIds,
@@ -80,47 +86,59 @@ exports.sendNotificationToMultipleUsers = async (
   data = {}
 ) => {
   try {
-    // Get users' FCM tokens
+    // Get users' emails
     const users = await User.find({ _id: { $in: userIds } });
 
-    // Filter valid FCM tokens
-    const tokens = users
-      .filter((user) => user.fcmToken)
-      .map((user) => user.fcmToken);
+    // Filter valid emails
+    const validUsers = users.filter((user) => user.email);
 
-    if (tokens.length === 0) {
-      console.log("No valid FCM tokens found");
+    if (validUsers.length === 0) {
+      console.log("No valid emails found");
       return null;
     }
 
-    // Prepare message
-    const message = {
-      tokens: tokens,
-      notification: {
-        title: notification.title,
-        body: notification.body,
-      },
-      data: data,
-      android: {
-        notification: {
-          sound: "default",
-          click_action: "FLUTTER_NOTIFICATION_CLICK",
-        },
-      },
-      apns: {
-        payload: {
-          aps: {
-            sound: "default",
+    // Format HTML email
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+        <h2 style="color: #4a90e2;">${notification.title}</h2>
+        <p style="font-size: 16px; line-height: 1.5;">${notification.body}</p>
+        ${data.actionUrl ? `<a href="${data.actionUrl}" style="display: inline-block; background-color: #4a90e2; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; margin-top: 15px;">View Details</a>` : ''}
+        <p style="margin-top: 30px; font-size: 14px; color: #777;">Thank you for using DumpIt</p>
+      </div>
+    `;
+
+    // Store notifications in database for each user
+    await User.updateMany(
+      { _id: { $in: userIds } },
+      {
+        $push: {
+          notifications: {
+            title: notification.title,
+            body: notification.body,
+            data: data,
+            isRead: false,
+            createdAt: new Date(),
           },
         },
-      },
-    };
+      }
+    );
 
-    // Send message
-    const response = await admin.messaging().sendMulticast(message);
-    console.log(`Notification sent to ${response.successCount} users`);
+    // Send emails to each user
+    const emailPromises = validUsers.map((user) => {
+      const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: user.email,
+        subject: notification.title,
+        html: htmlContent,
+      };
 
-    return response;
+      return transporter.sendMail(mailOptions);
+    });
+
+    const results = await Promise.all(emailPromises);
+    console.log(`Email notifications sent to ${results.length} users`);
+
+    return results;
   } catch (error) {
     console.error("Error sending notification to multiple users:", error);
     return null;
@@ -131,7 +149,7 @@ exports.sendNotificationToMultipleUsers = async (
  * Send notification for new order
  * @param {String} userId - User ID
  * @param {String} orderNumber - Order number
- * @returns {Promise<Object>} - FCM response
+ * @returns {Promise<Object>} - Email response
  */
 exports.sendNewOrderNotification = async (userId, orderNumber) => {
   return this.sendNotificationToUser(
@@ -143,6 +161,7 @@ exports.sendNewOrderNotification = async (userId, orderNumber) => {
     {
       type: "ORDER_PLACED",
       orderNumber: orderNumber,
+      actionUrl: `${process.env.FRONTEND_URL || 'https://dumpit.com'}/orders/${orderNumber}`,
     }
   );
 };
@@ -152,7 +171,7 @@ exports.sendNewOrderNotification = async (userId, orderNumber) => {
  * @param {String} userId - User ID
  * @param {String} orderNumber - Order number
  * @param {String} status - New order status
- * @returns {Promise<Object>} - FCM response
+ * @returns {Promise<Object>} - Email response
  */
 exports.sendOrderStatusNotification = async (userId, orderNumber, status) => {
   let title, body;
@@ -194,6 +213,7 @@ exports.sendOrderStatusNotification = async (userId, orderNumber, status) => {
       type: "ORDER_STATUS_UPDATED",
       orderNumber: orderNumber,
       status: status,
+      actionUrl: `${process.env.FRONTEND_URL || 'https://dumpit.com'}/orders/${orderNumber}`,
     }
   );
 };
@@ -202,7 +222,7 @@ exports.sendOrderStatusNotification = async (userId, orderNumber, status) => {
  * Send notification to vendor for new order
  * @param {String} vendorUserId - Vendor user ID
  * @param {String} orderNumber - Order number
- * @returns {Promise<Object>} - FCM response
+ * @returns {Promise<Object>} - Email response
  */
 exports.sendNewOrderToVendorNotification = async (
   vendorUserId,
@@ -217,6 +237,7 @@ exports.sendNewOrderToVendorNotification = async (
     {
       type: "NEW_ORDER_RECEIVED",
       orderNumber: orderNumber,
+      actionUrl: `${process.env.FRONTEND_URL || 'https://dumpit.com'}/vendor/orders/${orderNumber}`,
     }
   );
 };
