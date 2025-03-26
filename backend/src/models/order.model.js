@@ -333,7 +333,6 @@ orderSchema.virtual("isActive").get(function () {
 });
 
 // Index for faster queries
-orderSchema.index({ orderNumber: 1 });
 orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ vendor: 1, createdAt: -1 });
 orderSchema.index({ status: 1 });
