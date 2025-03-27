@@ -40,7 +40,7 @@ const generateRefreshToken = (user) => {
  */
 exports.register = asyncHandler(async (req, res) => {
   const { name, email, phone, password, role = "user" } = req.body;
-  
+  console.log(req.body);
   // Check for existing user
   const existingUser = await User.findOne({
     $or: [{ email }, { phone }],

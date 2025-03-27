@@ -1,12 +1,29 @@
 {
   "expo": {
-    "extra": {
-      "eas": {
-        "projectId": "7a009821-1ce2-481f-b6a0-46df2aff7d86"
-      }
+    "name": "Dumpit",
+    "slug": "dumpit",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "description": "Quick commerce platform for construction materials",
+    "ios": {
+      "supportsTablet": true
     },
     "android": {
-      "package": "com.mdnihal.dumpitfrontend"
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     }
   }
 }
