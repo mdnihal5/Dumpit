@@ -213,52 +213,6 @@ const orderSchema = new mongoose.Schema(
         comment: String,
       },
     ],
-    notes: [
-      {
-        text: {
-          type: String,
-          required: true,
-        },
-        createdBy: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
-        isPrivate: {
-          type: Boolean,
-          default: false,
-        },
-      },
-    ],
-    feedback: {
-      rating: {
-        type: Number,
-        min: 1,
-        max: 5,
-      },
-      comment: {
-        type: String,
-      },
-      createdAt: {
-        type: Date,
-      },
-    },
-    isGift: {
-      type: Boolean,
-      default: false,
-    },
-    giftMessage: {
-      type: String,
-    },
-    source: {
-      type: String,
-      enum: ["app", "web", "phone", "other"],
-      default: "app",
-    },
   },
   {
     timestamps: true,

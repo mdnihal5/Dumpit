@@ -37,15 +37,7 @@ const productSchema = new mongoose.Schema(
         "other",
       ],
     },
-    subCategory: {
-      type: String,
-      trim: true,
-    },
     brand: {
-      type: String,
-      trim: true,
-    },
-    manufacturerName: {
       type: String,
       trim: true,
     },
@@ -103,10 +95,6 @@ const productSchema = new mongoose.Schema(
         default: 0,
         min: [0, "Reserved inventory cannot be negative"],
       },
-      total: {
-        type: Number,
-        min: [0, "Total inventory cannot be negative"],
-      },
       lowStockThreshold: {
         type: Number,
         default: 10,
@@ -129,10 +117,6 @@ const productSchema = new mongoose.Schema(
       },
     ],
     specifications: mongoose.Schema.Types.Mixed,
-    hsn: {
-      type: String, // Harmonized System Nomenclature code
-      trim: true,
-    },
     taxPercentage: {
       type: Number,
       required: [true, "Tax percentage is required"],
@@ -149,47 +133,6 @@ const productSchema = new mongoose.Schema(
       startDate: Date,
       endDate: Date,
     },
-    averageRating: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5,
-    },
-    totalReviews: {
-      type: Number,
-      default: 0,
-    },
-    deliveryOptions: {
-      selfPickup: {
-        type: Boolean,
-        default: true,
-      },
-      delivery: {
-        type: Boolean,
-        default: true,
-      },
-      deliveryCharge: {
-        type: Number,
-        default: 0,
-      },
-      freeDeliveryMinOrder: {
-        type: Number,
-        default: 5000, // Free delivery for orders above 5000
-      },
-    },
-    isPopular: {
-      type: Boolean,
-      default: false,
-    },
-    isPromoted: {
-      type: Boolean,
-      default: false,
-    },
-    status: {
-      type: String,
-      enum: ["active", "inactive", "outOfStock", "discontinued"],
-      default: "inactive",
-    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -205,53 +148,31 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-// Pre-save middleware to calculate total inventory
-productSchema.pre("save", function (next) {
-  this.inventory.total = this.inventory.available + this.inventory.reserved;
-
-  // Update low stock status
-  this.inventory.isLowStock =
-    this.inventory.available <= this.inventory.lowStockThreshold;
-
-  // Set product status to outOfStock if total inventory is 0
-  if (this.inventory.total <= 0) {
-    this.status = "outOfStock";
-  } else if (this.status === "outOfStock" && this.inventory.total > 0) {
-    this.status = "active";
-  }
-
-  next();
+// Virtual for total inventory
+productSchema.virtual("inventory.total").get(function () {
+  return this.inventory.available + this.inventory.reserved;
 });
 
-// Method to get current price after discount
-productSchema.methods.getCurrentPrice = function () {
-  if (!this.discount || !this.discount.percentage) {
-    return this.pricePerUnit;
-  }
-
-  const now = new Date();
-  const startDate = this.discount.startDate
-    ? new Date(this.discount.startDate)
-    : null;
-  const endDate = this.discount.endDate
-    ? new Date(this.discount.endDate)
-    : null;
-
-  // Check if discount is currently applicable
-  if ((startDate && now < startDate) || (endDate && now > endDate)) {
-    return this.pricePerUnit;
-  }
-
-  // Calculate discounted price
-  const discountAmount = (this.pricePerUnit * this.discount.percentage) / 100;
-  return this.pricePerUnit - discountAmount;
-};
-
-// Virtual for the price with tax
+// Virtual for price with tax
 productSchema.virtual("priceWithTax").get(function () {
-  const basePrice = this.getCurrentPrice();
-  const taxAmount = (basePrice * this.taxPercentage) / 100;
-  return basePrice + taxAmount;
+  return this.pricePerUnit * (1 + this.taxPercentage / 100);
+});
+
+// Virtual for price per unit after discount
+productSchema.virtual("pricePerUnitAfterDiscount").get(function () {
+  const now = new Date();
+  const isDiscountActive = this.discount.startDate <= now && this.discount.endDate >= now;
+  if (isDiscountActive) {
+    return this.pricePerUnit * (1 - this.discount.percentage / 100);
+  }
+  return this.pricePerUnit;
+});
+
+// Pre-save middleware to update low stock status
+productSchema.pre("save", function (next) {
+  // Update low stock status
+  this.inventory.isLowStock = this.inventory.available <= this.inventory.lowStockThreshold;
+  next();
 });
 
 // Index for better search performance

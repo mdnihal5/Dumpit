@@ -129,16 +129,6 @@ const vendorSchema = new mongoose.Schema(
         ],
       },
     ],
-    averageRating: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5,
-    },
-    totalReviews: {
-      type: Number,
-      default: 0,
-    },
     totalOrders: {
       type: Number,
       default: 0,
@@ -148,17 +138,6 @@ const vendorSchema = new mongoose.Schema(
       enum: ["pending", "verified", "rejected"],
       default: "pending",
     },
-    verificationDocuments: [
-      {
-        name: String,
-        url: String,
-        type: String,
-        uploadedAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
     commissionRate: {
       type: Number,
       default: 10, // in percentage
@@ -174,10 +153,6 @@ const vendorSchema = new mongoose.Schema(
     activeProductsCount: {
       type: Number,
       default: 0,
-    },
-    isPromoted: {
-      type: Boolean,
-      default: false,
     },
     status: {
       type: String,

@@ -33,14 +33,6 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "vendor", "admin", "delivery"],
       default: "user",
     },
-    isEmailVerified: {
-      type: Boolean,
-      default: false,
-    },
-    isPhoneVerified: {
-      type: Boolean,
-      default: false,
-    },
     avatar: {
       type: String,
       default: "",
@@ -95,10 +87,6 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    lastLogin: {
-      type: Date,
-      default: null,
-    },
     status: {
       type: String,
       enum: ["active", "inactive", "suspended"],
@@ -132,17 +120,25 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-// Method to compare passwords
-userSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
-};
+// Virtual for default address
+userSchema.virtual("defaultAddress").get(function () {
+  return this.addresses.find(addr => addr.isDefault) || this.addresses[0];
+});
 
-// Method to get user's default address
-userSchema.methods.getDefaultAddress = function () {
-  if (!this.addresses || this.addresses.length === 0) return null;
+// Virtual for email verification status
+userSchema.virtual("isEmailVerified").get(function () {
+  return this.email && this.status === "active";
+});
 
-  const defaultAddress = this.addresses.find((addr) => addr.isDefault);
-  return defaultAddress || this.addresses[0]; // Return default or first address
+// Virtual for phone verification status
+userSchema.virtual("isPhoneVerified").get(function () {
+  return this.phone && this.status === "active";
+});
+
+// Method to update last login
+userSchema.methods.updateLastLogin = async function () {
+  this.lastLogin = new Date();
+  await this.save();
 };
 
 const User = mongoose.model("User", userSchema);
