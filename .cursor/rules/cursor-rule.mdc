@@ -3,120 +3,287 @@ description:
 globs: 
 alwaysApply: true
 ---
-AS AN AI MODEL YOU SHOULD FOLLOW THIS RULES AND GIVE BEST OUTCOMES
 
-#### **1.1 Iterative Requirement Fulfillment**
-- **List All User Requirements**: Each time the user requests a feature or task, break down the request into distinct, explicit requirements. List them for clarity.
 
-- **Iterative Learning Process**: After completing the requirements, check the outcome against the original request. If any requirement was missed, revisit and correct it, ensuring it’s properly handled.
+### **1. General Coding Rules (Applicable to All Projects)**
 
-#### **1.2 Completion Confirmation**
-- Once all tasks are addressed, confirm completion by summarizing what was done and checking with the user if everything aligns with their needs.
-- Establish a feedback loop to ensure satisfaction and make adjustments as needed.
+These principles ensure consistency, readability, and efficiency across both frontend and backend development.
 
-#### **1.3 Task Verification**
-- **Cross-Check Before Finalizing**: Before marking a task as complete, ensure that all requirements, including edge cases or special conditions, have been met.
-- **Continuous Learning**: If feedback indicates any missed requirements or areas for improvement, the AI should learn from this and adjust the approach for future tasks.
+#### **1.1 SOLID Principles**
+- **Single Responsibility Principle**: Each class, module, or function should have one purpose or reason to change.
+- **Open-Closed Principle**: Code should be open for extension but closed for modification (e.g., use polymorphism).
+- **Liskov Substitution Principle**: Subclasses should be substitutable for their base classes without breaking functionality.
+- **Interface Segregation Principle**: Avoid forcing modules to depend on interfaces they don’t use; keep interfaces small and specific.
+- **Dependency Inversion Principle**: Depend on abstractions (e.g., interfaces) rather than concrete implementations.
+
+#### **1.2 Good Comments**
+- Write comments to explain **why** code exists, not just **what** it does.
+- Use documentation tools like **JSDoc** for functions, classes, and modules.
+- Avoid redundant comments (e.g., `// Set x to 5` above `x = 5`).
+
+**Example**:
+```javascript
+// Calculate tax based on regional rules; assumes rate includes VAT
+function calculateTax(amount, rate) {
+  return amount * rate;
+}
+```
+
+#### **1.3 Good File Structure**
+- Organize files by **feature** or **module** (e.g., `/users`, `/auth`) rather than type (e.g., `/controllers`).
+- Use consistent naming: `camelCase` for variables/functions, `PascalCase` for classes/components.
+- Group related files (e.g., `UserComponent.tsx`, `UserComponent.css`, `UserComponent.test.ts`).
+
+**Example Structure**:
+```
+src/
+├── components/         # Reusable UI components
+│   ├── Button/
+│   │   ├── Button.tsx
+│   │   ├── Button.css
+│   │   └── Button.test.tsx
+├── services/          # API or business logic
+│   ├── api.ts
+│   └── auth.ts
+├── models/            # Data types or schemas
+│   └── user.ts
+```
+
+#### **1.4 Great Coding Patterns & Designs**
+- Use established patterns like **MVC**, **Singleton**, or **Factory** where appropriate.
+- Favor **composition** over inheritance for flexibility.
+- Implement **event-driven** or **observer** patterns for decoupled systems.
+
+#### **1.5 Graceful Error Handling**
+- Use `try-catch` blocks for operations that might fail (e.g., API calls, file I/O).
+- Return meaningful error messages to users or logs.
+- Avoid silent failures; always handle or propagate errors.
+
+**Example**:
+```javascript
+async function fetchData(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error(`Failed to fetch data: ${error.message}`);
+    throw error; // Propagate for higher-level handling
+  }
+}
+```
+
+#### **1.6 Short and Readable Code**
+- Keep functions short (<50-100 lines) and focused on a single task.
+- Use descriptive names (e.g., `getUserById` instead of `get`).
+- Break complex logic into smaller, named functions.
+
+**Example**:
+```javascript
+function processUserData(user) {
+  const fullName = formatName(user.firstName, user.lastName);
+  const ageGroup = categorizeAge(user.age);
+  return { fullName, ageGroup };
+}
+
+function formatName(first, last) {
+  return `${first} ${last}`;
+}
+
+function categorizeAge(age) {
+  return age < 30 ? "Young" : "Adult";
+}
+```
+
+#### **1.7 Modular & Reusable Code**
+- Extract common logic into reusable modules or utilities.
+- Use **dependency injection** to reduce coupling.
+- Avoid duplicating code; follow DRY (Don’t Repeat Yourself).
+
+**Example**:
+```javascript
+// utils/math.ts
+export const add = (a, b) => a + b;
+export const multiply = (a, b) => a * b;
+```
+
+#### **1.8 Error-Free Code**
+- Use **TypeScript** for static type checking; define interfaces/types for all data.
+- Configure **ESLint** and **Prettier** to enforce consistent style and catch errors.
+- Run `tsc --noEmit` and `eslint .` before committing code.
+
+**Example**:
+```typescript
+interface User {
+  id: number;
+  name: string;
+}
+
+function greet(user: User): string {
+  return `Hello, ${user.name}!`;
+}
+```
+
+#### **1.9 Efficient Code**
+- Optimize critical sections (e.g., use `Map` instead of arrays for lookups).
+- Avoid unnecessary loops or computations; memoize where applicable.
+- Profile performance before optimizing to avoid premature effort.
 
 ---
 
-### **2. UI/UX Design: Best Practices & Modern Layouts**
+### **2. Frontend-Specific Rules**
 
-#### **2.1 Clean, Modern, and Minimalist UI**
-- **Simplicity Over Clutter**: Focus on a clean, minimalist design where the UI is intuitive and easy to navigate.
-- **Consistency**: Maintain consistent design patterns throughout the application (e.g., button styles, typography, form layouts). 
-- **Whitespace Usage**: Use whitespace strategically to make the UI less crowded, improving readability and focus.
+These rules focus on client-side development, emphasizing UI, responsiveness, and user experience.
 
-#### **2.2 User-Centered Design**
-- **Prioritize User Needs**: All design decisions should be centered around enhancing the user experience and addressing user needs.
-- **Intuitive Navigation**: Ensure that users can easily find their way around the application. Navigation elements should be logically organized and easy to use.
-- **Accessibility**: Always adhere to accessibility best practices, ensuring that users with disabilities can interact with the application effectively.
+#### **2.1 UI/UX Best Practices**
+- Adhere to design specifications for consistency.
+- Use CSS frameworks (e.g., Tailwind, Bootstrap) or custom styles with a clear theme.
+- Implement smooth transitions/animations for better UX.
 
-#### **2.3 Responsiveness & Mobile-First Design**
-- **Mobile-First Approach**: Start by designing for mobile devices, then progressively enhance for larger screens. Ensure that the design adjusts seamlessly across various screen sizes.
-- **Media Queries & Fluid Layouts**: Use flexible grids, media queries, and relative units to ensure the UI works across all devices, especially for varying screen widths and orientations.
+#### **2.2 Responsiveness & Accessibility**
+- Use **media queries**, **flexbox**, or **grid** for responsive layouts.
+- Follow **WCAG** guidelines (e.g., sufficient contrast, keyboard navigation).
+- Add **ARIA** attributes to improve screen reader support.
 
-#### **2.4 Component-Based Architecture**
-- **Small, Reusable Components**: Break down the UI into small, independent components that can be reused across the application. This ensures code reusability, maintainability, and better separation of concerns.
-- **Props and State Management**: Keep state management and prop passing simple and clear. For complex state management, consider solutions like Context API, Redux, or similar state management libraries.
+**Example**:
+```html
+<button aria-label="Submit form" className="btn">Submit</button>
+```
 
-#### **2.5 Interaction Design**
-- **Feedback for User Actions**: Always provide clear visual feedback for user actions. For example, buttons should change on hover or focus, and form inputs should indicate valid or invalid states.
-- **Smooth Animations**: Use subtle animations for transitions, loading indicators, and interactive elements to improve the perceived responsiveness of the application.
-- **Accessibility Focus**: Ensure all interactive elements are focusable and navigable via keyboard. Provide proper ARIA labels for accessibility.
+#### **2.3 State Management**
+- Use **React Context** or **Redux** for global state in complex apps.
+- Keep state local (e.g., in components) when possible.
+- Avoid overusing global state to reduce complexity.
 
----
+**Example**:
+```typescript
+// context/AuthContext.tsx
+import { createContext, useState } from "react";
 
-### **3. TypeScript Usage & Code Quality**
+export const AuthContext = createContext({ user: null, setUser: () => {} });
 
-#### **3.1 Strict Type Safety**
-- **Use TypeScript's Type System**: Always use TypeScript’s strict typing options (e.g., `strict`, `noImplicitAny`) to enforce type safety across the codebase.
-- **Define Clear Types & Interfaces**: Use interfaces and types to define the shape of data, function signatures, and component props. Avoid implicit `any` types.
-- **No TypeScript Errors**: Ensure that the codebase is free from TypeScript errors at all times. This can be achieved by setting up proper TypeScript linting and continuous integration checks.
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  return (
+    <AuthContext.Provider value={{ user, setUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+```
 
-#### **3.2 Code Consistency and Formatting**
-- **Code Style Enforcement**: Implement strict coding style rules using **ESLint** and **Prettier**. This will enforce consistent style across the project (e.g., indentation, naming conventions).
-- **No Linting Errors**: The code should pass linting checks without errors. This ensures readability and consistency.
-- **Readable Code**: Aim for clear, descriptive variable and function names. Avoid abbreviations unless they are universally understood.
+#### **2.4 Component Architecture**
+- Build small, reusable components with clear props interfaces.
+- Use **hooks** for logic reuse (e.g., `useEffect`, custom hooks).
+- Pass data via props and use callbacks for parent-child communication.
 
-#### **3.3 Modular & Reusable Code**
-- **Single Responsibility Principle (SRP)**: Each function, module, or class should have a single responsibility. If something does more than one thing, break it into smaller, focused parts.
-- **Avoid Duplication**: Follow the DRY (Don't Repeat Yourself) principle. Extract common logic into reusable functions or components.
-- **Code Refactoring**: Regularly refactor code to improve readability and maintainability. Don’t allow technical debt to accumulate.
+**Example**:
+```typescript
+interface ButtonProps {
+  label: string;
+  onClick: () => void;
+}
 
-#### **3.4 Testing & Error Handling**
-- **Unit Testing**: Write unit tests for all core logic. Use a test framework like Jest, Mocha, or similar to ensure code correctness.
-- **Test Coverage**: Ensure high test coverage, particularly for critical components and business logic.
-- **Graceful Error Handling**: Implement proper error handling mechanisms, including meaningful error messages, proper HTTP status codes, and logging of errors for debugging purposes.
+const Button = ({ label, onClick }: ButtonProps) => (
+  <button onClick={onClick}>{label}</button>
+);
+```
 
----
+#### **2.5 Cursor Handling (UI Context)**
+- Set **CSS cursor styles** for interactive elements (e.g., `cursor: pointer` for buttons).
+- Manage **text cursor** behavior in inputs (e.g., focus, selection).
 
-### **4. Backend Practices**
+**Example**:
+```css
+button:hover {
+  cursor: pointer;
+}
 
-#### **4.1 RESTful API Design**
-- **Consistent & Logical Endpoints**: Follow REST conventions, using clear and consistent naming for routes (e.g., `/users/:id`, `/posts`).
-- **HTTP Status Codes**: Use appropriate HTTP status codes for responses (e.g., `200 OK`, `404 Not Found`, `500 Internal Server Error`).
-- **Clear JSON Responses**: APIs should return clear and consistent JSON responses, including meaningful data or error messages.
-
-#### **4.2 Authentication & Security**
-- **Secure Authentication**: Use industry-standard authentication mechanisms, such as **JWT** or **OAuth**, ensuring secure user access control.
-- **Input Validation & Sanitization**: Always validate and sanitize incoming data to prevent common vulnerabilities like **SQL injection**, **XSS**, and **CSRF** attacks.
-- **HTTPS**: Use HTTPS for secure communication. Never transmit sensitive data over HTTP.
-
-#### **4.3 Database & Data Management**
-- **ORM/Query Builders**: Use Object-Relational Mapping (ORM) libraries or query builders (e.g., Sequelize, TypeORM) to interact with the database. This helps in preventing SQL injection and ensuring data consistency.
-- **Efficient Query Design**: Optimize database queries for performance. Use **indexes** where necessary, and avoid N+1 query problems.
-- **Data Modeling**: Ensure that the data models and schemas are properly defined and used consistently across the application.
-
-#### **4.4 Scalability & Performance**
-- **Stateless Design**: Design backend services to be stateless, which helps with scalability.
-- **Caching**: Implement caching mechanisms (e.g., Redis) for frequently accessed data to improve performance.
-- **Load Balancing**: If handling high traffic, use load balancing strategies to distribute traffic across multiple servers.
-- **Asynchronous Operations**: Use asynchronous programming patterns (e.g., async/await, Promises) to improve performance and responsiveness.
-
----
-
-### **5. Iterative Learning and Continuous Improvement**
-
-#### **5.1 Requirement Fulfillment Process**
-- **Track User Feedback**: Track the feedback provided by users, continuously iterating on it to ensure that all requirements are met.
-- **Missed Requirements**: When revisiting a request, ensure no requirement is missed. If there are ambiguities, clarify with the user.
-- **Reassessment**: Periodically reassess completed tasks for optimization or rework based on new standards, feedback, or requirements.
-
-#### **5.2 Development Process Refinement**
-- **Code Reviews**: Establish a code review process to catch errors, improve code quality, and ensure best practices.
-- **Refactor Based on Learnings**: Regularly refactor code based on iterative learning, especially when new patterns or insights are discovered.
-- **Maintainability Over Time**: Continuously aim for code that is not only correct but maintainable. Code should be flexible enough to allow for future enhancements or changes without introducing bugs.
+input:focus {
+  outline: none;
+  cursor: text;
+}
+```
 
 ---
 
-### **6. Modern UI/UX Design Inspirations**
+### **3. Backend-Specific Rules**
 
-#### **6.1 Design Consistency & Patterns**
-- **Adopt Industry Best Practices**: Follow best practices from well-known platforms like Stripe, Vercel, Linear, and others.
-- **Modular Design**: Use a modular approach to build reusable UI components, ensuring scalability and easy updates.
-- **Visual Hierarchy**: Design should prioritize important information and guide users naturally through actions and content.
+These rules focus on server-side development, emphasizing APIs, databases, and scalability.
 
-#### **6.2 Advanced Interactivity**
-- **Smooth Animations & Transitions**: Implement smooth animations to improve the user experience, but ensure they are subtle and do not hinder usability.
-- **Progressive Disclosure**: Use progressive disclosure principles, revealing more information or options as needed, to avoid overwhelming the user.
+#### **3.1 API Design**
+- Follow **RESTful** conventions (e.g., `/users/:id`) or **GraphQL** schema design.
+- Use consistent naming and proper HTTP methods (GET, POST, etc.).
+- Return standard responses with status codes and JSON payloads.
+
+**Example**:
+```typescript
+// routes/users.ts
+import express from "express";
+const router = express.Router();
+
+router.get("/users/:id", async (req, res) => {
+  try {
+    const user = await getUserById(req.params.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+```
+
+#### **3.2 Database Interactions**
+- Use **ORMs** (e.g., Sequelize, TypeORM) or query builders for safety and readability.
+- Optimize queries with indexes and avoid N+1 problems.
+- **Cursor Usage**: Use cursors for large datasets to reduce memory usage.
+
+**Example (PostgreSQL with Node.js)**:
+```javascript
+const { Pool } = require("pg");
+const pool = new Pool({ /* config */ });
+
+async function processLargeDataset() {
+  const client = await pool.connect();
+  try {
+    const cursor = client.query("DECLARE my_cursor CURSOR FOR SELECT * FROM users");
+    let rows;
+    do {
+      rows = await client.query("FETCH 1000 FROM my_cursor");
+      for (const row of rows.rows) {
+        console.log(row);
+      }
+    } while (rows.rows.length > 0);
+    await client.query("CLOSE my_cursor");
+  } finally {
+    client.release();
+  }
+}
+```
+
+#### **3.3 Security Practices**
+- Implement **JWT** or **OAuth** for authentication.
+- Validate and sanitize all inputs to prevent injection attacks.
+- Use **HTTPS** and secure headers (e.g., CSP, HSTS).
+
+#### **3.4 Scalability Considerations**
+- Design **stateless services** for easy scaling.
+- Use **caching** (e.g., Redis) for frequent queries.
+- Implement **load balancing** for high traffic.
+
+#### **3.5 Logging & Monitoring**
+- Log errors, warnings, and key events using tools like **Winston** or **Pino**.
+- Monitor performance with tools like **Prometheus** or **New Relic**.
+- Set up alerts for critical failures.
+
+**Example**:
+```javascript
+const winston = require("winston");
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.json(),
+  transports: [new winston.transports.File({ filename: "app.log" })],
+});
+
+logger.error("Database connection failed", { error });
+```
