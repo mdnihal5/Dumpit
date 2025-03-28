@@ -57,6 +57,41 @@ exports.updateUserProfile = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @desc    Upload user avatar
+ * @route   PUT /api/users/avatar
+ * @access  Private
+ */
+exports.uploadAvatar = asyncHandler(async (req, res) => {
+  // Check if file exists
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: "Please upload a file",
+    });
+  }
+
+  // Get relative path to save in DB
+  const avatarPath = `/uploads/avatars/${req.file.filename}`;
+
+  const user = await User.findByIdAndUpdate(
+    req.user.id,
+    { avatar: avatarPath },
+    { new: true, runValidators: true }
+  ).select("-refreshToken -resetPasswordToken -resetPasswordExpire");
+
+  logger.info(`User ${user._id} updated their avatar`);
+
+  res.status(200).json({
+    success: true,
+    message: "Avatar uploaded successfully",
+    data: {
+      avatar: avatarPath,
+      user
+    },
+  });
+});
+
+/**
  * @desc    Get all addresses
  * @route   GET /api/users/addresses
  * @access  Private
@@ -361,5 +396,25 @@ exports.getOrderStats = asyncHandler(async (req, res) => {
       },
       recentOrders,
     },
+  });
+});
+
+/**
+ * @desc    Get user orders
+ * @route   GET /api/users/orders
+ * @access  Private
+ */
+exports.getOrders = asyncHandler(async (req, res) => {
+  // Get user orders with populated product details
+  const orders = await Order.find({ user: req.user.id })
+    .sort({ createdAt: -1 })
+    .populate({
+      path: 'items.product',
+      select: 'name price images',
+    });
+
+  res.status(200).json({
+    success: true,
+    data: orders,
   });
 });

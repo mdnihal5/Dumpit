@@ -1,4 +1,5 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
+import { MainTabParamList } from './MainTabNavigator';
 
 // Auth stack screens
 export type AuthStackParamList = {
@@ -10,25 +11,24 @@ export type AuthStackParamList = {
 
 // Main app screens
 export type MainStackParamList = {
-  // Core screens
-  Home: undefined;
-  Profile: undefined;
-  Settings: undefined;
+  Main: NavigatorScreenParams<MainTabParamList>;
+  
+  // New screens
+  OrderDetails: { orderId: string };
+  SavedAddresses: undefined;
+  ChangePassword: undefined;
+  ProductDetails: { productId: string };
+  Shop: { shopId: string };
   
   // Profile related screens
   EditProfile: undefined;
   Addresses: undefined;
-  ChangePassword: undefined;
-  SavedAddresses: undefined;
-  Wishlist: undefined;
-  OrderHistory: undefined;
-  Notifications: undefined;
   Privacy: undefined;
+  Settings: undefined;
   
   // Product related screens
-  ProductDetails: { productId: string };
-  Cart: undefined;
   Checkout: undefined;
+  Product: { id: string };
   
   // Vendor specific screens
   ProductManagement: undefined;
@@ -44,11 +44,21 @@ export type MainStackParamList = {
   AboutUs: undefined;
   PrivacyPolicy: undefined;
   TermsConditions: undefined;
+  
+  // Tab screens - also defined in MainTabParamList but needed for stack navigation
+  Home: undefined;
+  Cart: undefined;
+  OrderHistory: undefined;
+  Notifications: undefined;
+  Profile: undefined;
+  Shops: undefined;
 };
 
 // Root navigator that contains auth and main stacks
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
-  Main: NavigatorScreenParams<MainStackParamList>;
+  Main: NavigatorScreenParams<MainTabParamList>;
   Splash: undefined;
+  Product: { id: string };
+  Shop: { shopId: string };
 }; 

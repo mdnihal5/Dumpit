@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
+  TextStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -16,16 +17,20 @@ import useAuth from '../hooks/useAuth';
 import { MainScreenNavigationProp } from '../types/navigation';
 
 // Props interface
-interface HeaderProps {
-  title?: string;
+export interface HeaderProps {
+  title: string;
   showBack?: boolean;
   showProfile?: boolean;
+  onBackPress?: () => void;
+  rightIcon?: React.ReactNode;
 }
 
 const Header: React.FC<HeaderProps> = ({
   title,
   showBack = false,
   showProfile = true,
+  onBackPress,
+  rightIcon,
 }) => {
   const navigation = useNavigation<MainScreenNavigationProp>();
   const { user, logout } = useAuth();
@@ -33,7 +38,11 @@ const Header: React.FC<HeaderProps> = ({
 
   // Handle back button press
   const handleBackPress = () => {
-    navigation.goBack();
+    if (onBackPress) {
+      onBackPress();
+    } else {
+      navigation.goBack();
+    }
   };
 
   // Handle profile press
@@ -84,8 +93,14 @@ const Header: React.FC<HeaderProps> = ({
                 <Feather name="arrow-left" size={24} color={colors.text} />
               </TouchableOpacity>
             )}
-            {title && <Text style={styles.title}>{title}</Text>}
+            <Text style={styles.title}>{title}</Text>
           </View>
+
+          {rightIcon && (
+            <View style={styles.rightContainer}>
+              {rightIcon}
+            </View>
+          )}
 
           {showProfile && user && (
             <View style={styles.rightContainer}>
@@ -169,7 +184,7 @@ const styles = StyleSheet.create({
     fontWeight: typography.h3.fontWeight as "bold" | "normal" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900",
     lineHeight: typography.h3.lineHeight,
     color: colors.text,
-  },
+  } as TextStyle,
   rightContainer: {
     flexDirection: 'row',
     alignItems: 'center',

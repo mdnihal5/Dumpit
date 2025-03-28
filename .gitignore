@@ -4,6 +4,7 @@
 *node_modules/
 
 # Expo
+*ngrok
 .expo/
 dist/
 web-build/

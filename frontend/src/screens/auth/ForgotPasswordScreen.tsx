@@ -8,6 +8,7 @@ import {
   Platform,
   ScrollView,
   SafeAreaView,
+  TextInput,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/types';
@@ -88,16 +89,18 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
             {/* Form */}
             {!isSubmitted ? (
               <View style={styles.form}>
-                <Input
-                  label="Email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  error={error}
-                  autoComplete="email"
-                />
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Email</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Enter your email"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                  />
+                </View>
                 
                 <Button
                   title="Send Reset Link"
@@ -176,6 +179,25 @@ const styles = StyleSheet.create({
   },
   form: {
     marginBottom: spacing.xl,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: typography.body2.fontSize,
+    fontWeight: typography.body2.fontWeight as any,
+    lineHeight: typography.body2.lineHeight,
+    color: colors.text,
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: typography.body1.fontSize,
+    fontWeight: typography.body1.fontWeight as any,
+    lineHeight: typography.body1.lineHeight,
   },
   submitButton: {
     marginTop: spacing.lg,

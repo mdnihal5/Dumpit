@@ -32,35 +32,67 @@ export const roleSchema = z
     message: 'Please select a valid role',
   });
 
-// Login validation schema
+// User schema for registration
+export const userSchema = z.object({
+  name: z.string().min(3, 'Name must be at least 3 characters long'),
+  email: z.string().email('Invalid email format'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters long')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+  confirmPassword: z.string(),
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+});
+
+// User schema for login
 export const loginSchema = z.object({
-  email: emailSchema,
-  password: passwordSchema,
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(1, 'Password is required'),
 });
 
-// Registration validation schema
-export const registerSchema = z.object({
-  name: nameSchema,
-  email: emailSchema,
-  phone: phoneSchema,
-  password: passwordSchema,
-  confirmPassword: z.string().min(1, { message: 'Please confirm your password' }),
-  role: roleSchema.optional().default('user'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
-
-// Profile update validation schema
+// User schema for profile update
 export const profileUpdateSchema = z.object({
-  name: nameSchema,
-  email: emailSchema,
-  phone: phoneSchema,
+  name: z.string().min(3, 'Name must be at least 3 characters long'),
+  email: z.string().email('Invalid email format'),
+  phone: z.string().optional(),
+});
+
+// Password schema for password reset
+export const passwordSchemaReset = z.object({
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters long')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+  confirmPassword: z.string(),
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+});
+
+// Schema for password change
+export const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z
+    .string()
+    .min(8, 'Password must be at least 8 characters long')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+  confirmPassword: z.string(),
+}).refine(data => data.newPassword === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
 });
 
 // Types
 export type LoginFormData = z.infer<typeof loginSchema>;
-export type RegisterFormData = z.infer<typeof registerSchema>;
+export type RegisterFormData = z.infer<typeof userSchema>;
 export type ProfileUpdateFormData = z.infer<typeof profileUpdateSchema>;
 
 // Helper functions for common validations (legacy compatibility)

@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "start": "expo start --tunnel",
-    "start:clear": "expo start --tunnel --clear",
+    "start": "expo start",
+    "start:tunnel": "expo start --tunnel",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "dev": "expo start --tunnel --clear"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~4.0.1",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-navigation/bottom-tabs": "^7.3.3",
     "@react-navigation/native": "^7.0.19",
@@ -18,8 +19,10 @@
     "@reduxjs/toolkit": "^2.6.1",
     "axios": "^1.8.4",
     "expo": "~52.0.41",
+    "expo-image-picker": "^16.0.6",
     "expo-status-bar": "~2.0.1",
     "react": "18.3.1",
+    "react-dom": "18.3.1",
     "react-native": "0.76.7",
     "react-native-paper": "^5.13.1",
     "react-native-safe-area-context": "^5.3.0",
@@ -28,6 +31,7 @@
     "react-native-svg-transformer": "^1.5.0",
     "react-native-toast-message": "^2.2.1",
     "react-native-vector-icons": "^10.2.0",
+    "react-native-web": "~0.19.13",
     "react-redux": "^9.2.0",
     "redux-persist": "^6.0.0",
     "zod": "^3.24.2"

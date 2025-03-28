@@ -1,50 +1,24 @@
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { CompositeNavigationProp } from '@react-navigation/native';
+import { 
+  AuthStackParamList, 
+  MainStackParamList, 
+  RootStackParamList 
+} from '../navigation/types';
+import { MainTabParamList } from '../navigation/MainTabNavigator';
 
-// Auth stack parameter list
-export type AuthStackParamList = {
-  Login: undefined;
-  Register: undefined;
-  ForgotPassword: undefined;
-  ResetPassword: { token: string };
-  ChangePassword: undefined;
-};
+// Re-export the param lists
+export { AuthStackParamList, MainStackParamList, RootStackParamList };
 
-// Main stack parameter list
-export type MainStackParamList = {
-  Home: undefined;
-  Profile: undefined;
-  Settings: undefined;
-  OrderHistory: undefined;
-  ProductDetails: { productId: string };
-  Cart: undefined;
-  Checkout: undefined;
-  
-  // Profile related screens
-  ChangePassword: undefined;
-  Notifications: undefined;
-  Privacy: undefined;
-  SavedAddresses: undefined;
-  Wishlist: undefined;
-  
-  // Vendor specific screens
-  ProductManagement: undefined;
-  OrderManagement: undefined;
-  Reports: undefined;
-  
-  // Admin specific screens
-  UserManagement: undefined;
-  VendorManagement: undefined;
-  CategoryManagement: undefined;
-};
-
-// Root stack parameter list
-export type RootStackParamList = {
-  Auth: undefined;
-  Main: undefined;
-  Splash: undefined;
-};
-
-// Navigation prop types
+// Navigation prop types for each navigation context
 export type AuthScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
-export type MainScreenNavigationProp = NativeStackNavigationProp<MainStackParamList>;
+
+// Combined navigation type for tab screens (used in MainTabNavigator screens)
+export type MainScreenNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<MainTabParamList>,
+  NativeStackNavigationProp<MainStackParamList>
+>;
+
+// Root navigation type (used in App.tsx)
 export type RootScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>; 

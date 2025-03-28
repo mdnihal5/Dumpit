@@ -8,22 +8,23 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  Alert
+  Alert,
+  TextInput
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { AuthScreenNavigationProp } from '../../types/navigation';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { AuthStackParamList } from '../../navigation/types';
 
 import { Feather } from '@expo/vector-icons';
-import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { colors, spacing, typography } from '../../utils/theme';
 import { loginSchema } from '../../utils/validation';
 import useAuth from '../../hooks/useAuth';
 import { BRANDING } from '../../utils/constants';
 
-const LoginScreen = () => {
-  const navigation = useNavigation<AuthScreenNavigationProp>();
+type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
+
+const LoginScreen = ({ navigation }: Props) => {
   const { login, isLoading } = useAuth();
   
   const [email, setEmail] = useState('');
@@ -100,36 +101,31 @@ const LoginScreen = () => {
           </View>
           
           <View style={styles.formContainer}>
-            <Input
-              label="Email"
-              placeholder="Enter your email"
-              value={email}
-              onChangeText={setEmail}
-              error={emailError}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              leftIcon={<Feather name="mail" size={20} color={colors.mediumGray} />}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Enter your email"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+              />
+              {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+            </View>
             
-            <Input
-              label="Password"
-              placeholder="Enter your password"
-              value={password}
-              onChangeText={setPassword}
-              error={passwordError}
-              secureTextEntry={!showPassword}
-              leftIcon={<Feather name="lock" size={20} color={colors.mediumGray} />}
-              rightIcon={
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Feather
-                    name={showPassword ? 'eye-off' : 'eye'}
-                    size={20}
-                    color={colors.mediumGray}
-                  />
-                </TouchableOpacity>
-              }
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Enter your password"
+                secureTextEntry={!showPassword}
+              />
+              {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+            </View>
             
             <TouchableOpacity
               style={styles.forgotPasswordContainer}
@@ -184,7 +180,7 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: typography.h1.fontSize,
-    fontWeight: typography.h1.fontWeight as "bold" | "normal" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900",
+    fontWeight: typography.h1.fontWeight as any,
     lineHeight: typography.h1.lineHeight,
     color: colors.text,
     marginBottom: spacing.xs,
@@ -192,7 +188,7 @@ const styles = StyleSheet.create({
   },
   subtitleText: {
     fontSize: typography.body1.fontSize,
-    fontWeight: typography.body1.fontWeight as "bold" | "normal" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900",
+    fontWeight: typography.body1.fontWeight as any,
     lineHeight: typography.body1.lineHeight,
     color: colors.darkGray,
     textAlign: 'center',
@@ -201,13 +197,37 @@ const styles = StyleSheet.create({
   formContainer: {
     width: '100%',
   },
+  inputContainer: {
+    marginBottom: spacing.md,
+  },
+  label: {
+    fontSize: typography.body2.fontSize,
+    fontWeight: typography.body2.fontWeight as any,
+    lineHeight: typography.body2.lineHeight,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: spacing.md,
+    fontSize: typography.body1.fontSize,
+    fontWeight: typography.body1.fontWeight as any,
+    lineHeight: typography.body1.lineHeight,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: typography.caption.fontSize,
+    marginTop: 4,
+  },
   forgotPasswordContainer: {
     alignSelf: 'flex-end',
     marginBottom: spacing.lg,
   },
   forgotPasswordText: {
     fontSize: typography.body2.fontSize,
-    fontWeight: typography.body2.fontWeight as "bold" | "normal" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900",
+    fontWeight: typography.body2.fontWeight as any,
     lineHeight: typography.body2.lineHeight,
     color: colors.primary,
   },
@@ -222,13 +242,13 @@ const styles = StyleSheet.create({
   },
   registerText: {
     fontSize: typography.body2.fontSize,
-    fontWeight: typography.body2.fontWeight as "bold" | "normal" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900",
+    fontWeight: typography.body2.fontWeight as any,
     lineHeight: typography.body2.lineHeight,
     color: colors.darkGray,
   },
   registerLink: {
     fontSize: typography.body2.fontSize,
-    fontWeight: "bold" as "bold",
+    fontWeight: "700" as any,
     lineHeight: typography.body2.lineHeight,
     color: colors.primary,
   },

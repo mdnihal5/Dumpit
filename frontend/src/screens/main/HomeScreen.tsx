@@ -10,7 +10,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { MainStackParamList } from '../../navigation/types';
+import { MainTabParamList } from '../../navigation/MainTabNavigator';
 import useAuth from '../../hooks/useAuth';
 import { colors, typography, spacing, shadows, borderRadius } from '../../utils/theme';
 import { Feather, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -22,7 +25,11 @@ import { Product } from '../../types/auth';
 import { Category } from '../../api/categoryService';
 import { getProductImage } from '../../utils/assetUtils';
 
-type Props = NativeStackScreenProps<MainStackParamList, 'Home'>;
+// Use composite screen props to support both stack and tab navigation
+type Props = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParamList, 'Home'>,
+  BottomTabScreenProps<MainTabParamList, 'Home'>
+>;
 
 interface CategoryIcon {
   name: string;

@@ -8,13 +8,14 @@ import {
   Platform,
   ScrollView,
   SafeAreaView,
+  TextInput,
+  TextStyle,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../navigation/types';
 import { useAuth } from '../../hooks/useAuth';
 import { colors, typography, spacing } from '../../utils/theme';
 import Button from '../../components/Button';
-import Input from '../../components/Input';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ResetPassword'>;
 
@@ -90,25 +91,33 @@ const ResetPasswordScreen: React.FC<Props> = ({ navigation, route }) => {
             {/* Form */}
             {!isSuccess ? (
               <View style={styles.form}>
-                <Input
-                  label="New Password"
-                  placeholder="Enter your new password"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  error={errors.password}
-                  autoComplete="password-new"
-                />
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>New Password</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="Enter new password"
+                    secureTextEntry
+                  />
+                  {errors.password && (
+                    <Text style={styles.errorText}>{errors.password}</Text>
+                  )}
+                </View>
                 
-                <Input
-                  label="Confirm Password"
-                  placeholder="Confirm your new password"
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry
-                  error={errors.confirmPassword}
-                  autoComplete="password-new"
-                />
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Confirm New Password</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="Confirm new password"
+                    secureTextEntry
+                  />
+                  {errors.confirmPassword && (
+                    <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+                  )}
+                </View>
                 
                 <Button
                   title="Reset Password"
@@ -156,7 +165,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontSize: typography.fontSizes.xxl,
-    fontWeight: '600' as const,
+    fontWeight: '600' as any,
     color: colors.text,
     marginBottom: spacing.sm,
   },
@@ -177,6 +186,30 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginTop: spacing.lg,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: typography.body2.fontSize,
+    fontWeight: typography.body2.fontWeight as any,
+    lineHeight: typography.body2.lineHeight,
+    color: colors.text,
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: typography.body1.fontSize,
+    fontWeight: typography.body1.fontWeight as any,
+    lineHeight: typography.body1.lineHeight,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: typography.caption.fontSize,
+    marginTop: 4,
   },
 });
 

@@ -2,6 +2,8 @@
  * Utility functions for handling assets in the app
  */
 
+import { API_URL } from '@env';
+
 // Fallback local product images when API doesn't return any
 export const fallbackProductImages = [
   require('../assets/images/products/product1.jpg'),
@@ -54,12 +56,40 @@ export const getProductImages = (product: any, count = 1): any[] => {
 
 /**
  * Get user avatar with fallback
- * @param avatarUrl Avatar URL from user object
- * @returns Image source for the avatar
+ * @param avatarPath - The avatar path from the user object
+ * @returns A fully qualified URL or default image source
  */
-export const getUserAvatar = (avatarUrl?: string): any => {
-  if (avatarUrl) {
-    return { uri: avatarUrl };
+export const getUserAvatar = (avatarPath: string): any => {
+  if (!avatarPath) {
+    // Return a default avatar image
+    return require('../assets/images/default-avatar.png');
   }
-  return defaultAvatar;
+
+  // Check if it's a full URL or a relative path
+  if (avatarPath.startsWith('http')) {
+    return { uri: avatarPath };
+  }
+
+  // It's a relative path, so prefix with API_URL
+  return { uri: `${API_URL}${avatarPath}` };
+};
+
+/**
+ * Creates a FormData object for image upload
+ * @param uri - The local URI of the image file
+ * @param fieldName - The form field name (default: 'avatar')
+ * @returns FormData object ready for upload
+ */
+export const createImageFormData = (uri: string, fieldName = 'avatar'): FormData => {
+  const formData = new FormData();
+  const fileType = uri.substring(uri.lastIndexOf('.') + 1);
+  
+  // @ts-ignore - FormData accepts this structure but TypeScript doesn't recognize it
+  formData.append(fieldName, {
+    uri,
+    name: `${fieldName}.${fileType}`,
+    type: `image/${fileType}`,
+  });
+  
+  return formData;
 }; 

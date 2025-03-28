@@ -3,285 +3,100 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
+  TextInput,
+  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
-  Alert
+  ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { AuthScreenNavigationProp } from '../../types/navigation';
-import { Feather } from '@expo/vector-icons';
-import Input from '../../components/Input';
-import Button from '../../components/Button';
-import { colors, spacing, typography } from '../../utils/theme';
-import { registerSchema } from '../../utils/validation';
-import useAuth from '../../hooks/useAuth';
-import { BRANDING } from '../../utils/constants';
+import { colors, typography } from '../../theme';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { AuthStackParamList } from '../../types/navigation';
 
-const RegisterScreen = () => {
-  const navigation = useNavigation<AuthScreenNavigationProp>();
-  const { register, isLoading } = useAuth();
-  
+type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
+
+const RegisterScreen = ({ navigation }: Props) => {
   const [name, setName] = useState('');
-  const [nameError, setNameError] = useState('');
-  
   const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState('');
-  
-  const [phone, setPhone] = useState('');
-  const [phoneError, setPhoneError] = useState('');
-  
   const [password, setPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [confirmPasswordError, setConfirmPasswordError] = useState('');
-  
-  const [role, setRole] = useState('user');
-  const [roleError, setRoleError] = useState('');
-  
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
-  const validateForm = () => {
-    // Reset all previous errors
-    setNameError('');
-    setEmailError('');
-    setPhoneError('');
-    setPasswordError('');
-    setConfirmPasswordError('');
-    setRoleError('');
-    
-    // Validate using Zod schema
-    const result = registerSchema.safeParse({
-      name,
-      email,
-      phone,
-      password,
-      confirmPassword,
-      role
-    });
-    
-    if (!result.success) {
-      // Format errors from Zod
-      const formattedErrors = result.error.format();
-      
-      if (formattedErrors.name?._errors?.length) {
-        setNameError(formattedErrors.name._errors[0]);
-      }
-      
-      if (formattedErrors.email?._errors?.length) {
-        setEmailError(formattedErrors.email._errors[0]);
-      }
-      
-      if (formattedErrors.phone?._errors?.length) {
-        setPhoneError(formattedErrors.phone._errors[0]);
-      }
-      
-      if (formattedErrors.password?._errors?.length) {
-        setPasswordError(formattedErrors.password._errors[0]);
-      }
-      
-      if (formattedErrors.confirmPassword?._errors?.length) {
-        setConfirmPasswordError(formattedErrors.confirmPassword._errors[0]);
-      } else if (formattedErrors._errors?.length) {
-        // This handles the refine error for password matching
-        setConfirmPasswordError(formattedErrors._errors[0]);
-      }
-      
-      if (formattedErrors.role?._errors?.length) {
-        setRoleError(formattedErrors.role._errors[0]);
-      }
-      
-      return false;
-    }
-    
-    return true;
+
+  const handleRegister = () => {
+    // TODO: Implement registration logic
+    console.log('Register:', { name, email, password, confirmPassword });
   };
-  
-  const handleRegister = async () => {
-    if (validateForm()) {
-      try {
-        const result = await register({
-          name,
-          email,
-          phone,
-          password,
-          role: role as 'user' | 'vendor'
-        });
-        
-        if (result.success) {
-          // Registration successful, navigation will be handled by auth state
-        } else {
-          Alert.alert('Registration Failed', result.error || 'Please check your information and try again.');
-        }
-      } catch (error) {
-        Alert.alert('Error', 'An unexpected error occurred. Please try again later.');
-      }
-    }
-  };
-  
+
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.headerContainer}>
-            <Text style={styles.titleText}>Create Account</Text>
-            <Text style={styles.subtitleText}>
-              {BRANDING.TAGLINE}
-            </Text>
-          </View>
-          
-          <View style={styles.formContainer}>
-            <Input
-              label="Full Name"
-              placeholder="Enter your full name"
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Sign up to get started</Text>
+        </View>
+
+        <View style={styles.form}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              style={styles.input}
               value={name}
               onChangeText={setName}
-              error={nameError}
+              placeholder="Enter your full name"
               autoCapitalize="words"
-              leftIcon={<Feather name="user" size={20} color={colors.mediumGray} />}
             />
-            
-            <Input
-              label="Email"
-              placeholder="Enter your email"
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
               value={email}
               onChangeText={setEmail}
-              error={emailError}
+              placeholder="Enter your email"
               keyboardType="email-address"
               autoCapitalize="none"
-              leftIcon={<Feather name="mail" size={20} color={colors.mediumGray} />}
+              autoComplete="email"
             />
-            
-            <Input
-              label="Phone Number"
-              placeholder="Enter your phone number"
-              value={phone}
-              onChangeText={setPhone}
-              error={phoneError}
-              keyboardType="phone-pad"
-              leftIcon={<Feather name="phone" size={20} color={colors.mediumGray} />}
-            />
-            
-            <Input
-              label="Password"
-              placeholder="Create a password"
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
               value={password}
               onChangeText={setPassword}
-              error={passwordError}
-              secureTextEntry={!showPassword}
-              leftIcon={<Feather name="lock" size={20} color={colors.mediumGray} />}
-              rightIcon={
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Feather
-                    name={showPassword ? 'eye-off' : 'eye'}
-                    size={20}
-                    color={colors.mediumGray}
-                  />
-                </TouchableOpacity>
-              }
+              placeholder="Enter your password"
+              secureTextEntry
             />
-            
-            <Input
-              label="Confirm Password"
-              placeholder="Confirm your password"
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Confirm Password</Text>
+            <TextInput
+              style={styles.input}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              error={confirmPasswordError}
-              secureTextEntry={!showConfirmPassword}
-              leftIcon={<Feather name="lock" size={20} color={colors.mediumGray} />}
-              rightIcon={
-                <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                  <Feather
-                    name={showConfirmPassword ? 'eye-off' : 'eye'}
-                    size={20}
-                    color={colors.mediumGray}
-                  />
-                </TouchableOpacity>
-              }
+              placeholder="Confirm your password"
+              secureTextEntry
             />
-            
-            <View style={styles.roleContainer}>
-              <Text style={styles.roleLabel}>Select your role</Text>
-              {roleError ? <Text style={styles.errorText}>{roleError}</Text> : null}
-              
-              <View style={styles.roleOptions}>
-                <TouchableOpacity 
-                  style={[
-                    styles.roleOption, 
-                    role === 'user' && styles.roleOptionSelected
-                  ]}
-                  onPress={() => setRole('user')}
-                >
-                  <Feather 
-                    name="user" 
-                    size={20} 
-                    color={role === 'user' ? colors.white : colors.mediumGray} 
-                  />
-                  <Text style={[
-                    styles.roleText,
-                    role === 'user' && styles.roleTextSelected
-                  ]}>
-                    Customer
-                  </Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={[
-                    styles.roleOption, 
-                    role === 'vendor' && styles.roleOptionSelected
-                  ]}
-                  onPress={() => setRole('vendor')}
-                >
-                  <Feather 
-                    name="briefcase" 
-                    size={20} 
-                    color={role === 'vendor' ? colors.white : colors.mediumGray} 
-                  />
-                  <Text style={[
-                    styles.roleText,
-                    role === 'vendor' && styles.roleTextSelected
-                  ]}>
-                    Vendor
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              
-              <Text style={styles.roleDescription}>
-                {role === 'user' 
-                  ? 'As a customer, you can browse and purchase construction materials.'
-                  : 'As a vendor, you can sell your construction materials on our platform.'
-                }
-              </Text>
-            </View>
-            
-            <Button
-              variant="primary"
-              title="Sign Up"
-              onPress={handleRegister}
-              loading={isLoading}
-              style={styles.button}
-            />
-            
-            <View style={styles.loginContainer}>
-              <Text style={styles.loginText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                <Text style={styles.loginLink}>Sign in</Text>
-              </TouchableOpacity>
-            </View>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+          <TouchableOpacity style={styles.button} onPress={handleRegister}>
+            <Text style={styles.buttonText}>Sign Up</Text>
+          </TouchableOpacity>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.footerLink}>Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -290,110 +105,70 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollView: {
+  scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.xxl,
-  },
-  headerContainer: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-  },
-  titleText: {
-    fontSize: typography.h1.fontSize,
-    fontWeight: '700',
-    lineHeight: typography.h1.lineHeight,
-    color: colors.text,
-    marginBottom: spacing.xs,
-    textAlign: 'center',
-  },
-  subtitleText: {
-    fontSize: typography.body1.fontSize,
-    fontWeight: '400',
-    lineHeight: typography.body1.lineHeight,
-    color: colors.darkGray,
-    textAlign: 'center',
-    marginBottom: spacing.lg,
-  },
-  formContainer: {
-    width: '100%',
-  },
-  roleContainer: {
-    marginBottom: spacing.md,
-  },
-  roleLabel: {
-    fontSize: typography.body1.fontSize,
-    fontWeight: '600',
-    lineHeight: typography.body1.lineHeight,
-    color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  roleOptions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: spacing.sm,
-  },
-  roleOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.lightGray,
-    backgroundColor: colors.background,
-    width: '48%',
+    padding: 20,
   },
-  roleOptionSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+  header: {
+    marginBottom: 32,
   },
-  roleText: {
-    fontSize: typography.body2.fontSize,
-    fontWeight: '500',
-    marginLeft: spacing.xs,
+  title: {
+    ...typography.h1,
     color: colors.text,
+    marginBottom: 8,
   },
-  roleTextSelected: {
-    color: colors.white,
+  subtitle: {
+    ...typography.body1,
+    color: colors.textSecondary,
   },
-  roleDescription: {
-    fontSize: typography.caption.fontSize,
-    fontWeight: '400',
-    lineHeight: typography.caption.lineHeight,
-    color: colors.darkGray,
-    marginTop: spacing.xs,
+  form: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  errorText: {
-    color: colors.error,
-    fontSize: typography.caption.fontSize,
-    marginBottom: spacing.xs,
+  inputContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    ...typography.body2,
+    color: colors.text,
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: 12,
+    ...typography.body1,
   },
   button: {
-    marginTop: spacing.lg,
-    marginBottom: spacing.md,
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 24,
   },
-  loginContainer: {
+  buttonText: {
+    ...typography.button,
+    color: colors.white,
+  },
+  footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: spacing.md,
   },
-  loginText: {
-    fontSize: typography.body2.fontSize,
-    fontWeight: '400',
-    lineHeight: typography.body2.lineHeight,
-    color: colors.darkGray,
+  footerText: {
+    ...typography.body2,
+    color: colors.textSecondary,
   },
-  loginLink: {
-    fontSize: typography.body2.fontSize,
-    fontWeight: "bold",
-    lineHeight: typography.body2.lineHeight,
+  footerLink: {
+    ...typography.body2,
     color: colors.primary,
   },
 });

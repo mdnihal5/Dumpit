@@ -141,6 +141,15 @@ userSchema.methods.updateLastLogin = async function () {
   await this.save();
 };
 
+// Method to compare password
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    throw new Error('Error comparing passwords');
+  }
+};
+
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;

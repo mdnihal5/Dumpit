@@ -16,6 +16,7 @@ router.use(protect); // Apply protect middleware to all routes below
 router.get("/me", authController.getCurrentUser);
 router.post("/logout", authController.logout);
 router.put("/change-password", authController.changePassword);
+router.put("/profile", authController.updateProfile);
 router.put("/fcm-token", authController.updateFcmToken);
 
 module.exports = router;

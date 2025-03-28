@@ -1,0 +1,385 @@
+import React, { useState, useEffect } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  TextStyle,
+  Alert,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { MainStackParamList } from '../navigation/types';
+import { Feather } from '@expo/vector-icons';
+import { colors, spacing, typography, shadows } from '../utils/theme';
+import { userService } from '../services/api';
+import Header from '../components/Header';
+import { formatCurrency } from '../utils/formatters';
+import { mockOrders } from '../utils/mockData';
+
+// Types for order data
+interface OrderItem {
+  _id: string;
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  imageUrl?: string;
+}
+
+interface Order {
+  _id: string;
+  orderNumber: string;
+  items: OrderItem[];
+  totalAmount: number;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  paymentStatus: 'pending' | 'paid' | 'failed';
+  createdAt: string;
+  updatedAt: string;
+  address?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+}
+
+type Props = NativeStackScreenProps<MainStackParamList, 'OrderHistory'>;
+
+const OrderHistoryScreen: React.FC<Props> = ({ navigation }) => {
+  // States
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // Fetch orders on mount
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+  
+  // Fetch orders from API
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      
+      // Try to fetch orders from the API
+      try {
+        const response = await userService.getOrders();
+        if (response.data.success) {
+          setOrders(response.data.data);
+          setLoading(false);
+          setRefreshing(false);
+          return;
+        }
+      } catch (apiError) {
+        console.log('API not available, using mock data', apiError);
+        // Fall back to mock data if API call fails
+      }
+      
+      // Use mock data as fallback
+      // Simulate API call delay
+      setTimeout(() => {
+        setOrders(mockOrders);
+        setLoading(false);
+        setRefreshing(false);
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      Alert.alert('Error', 'Unable to load your orders. Please try again later.');
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+  
+  // Handle pull-to-refresh
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchOrders();
+  };
+  
+  // View order details
+  const viewOrderDetails = (orderId: string) => {
+    // Navigate to order details screen
+    // This can be implemented later when we create an OrderDetailsScreen
+    Alert.alert('View Order', `Viewing details for order ${orderId}`);
+  };
+  
+  // Get status color based on order status
+  const getStatusColor = (status: Order['status']) => {
+    switch (status) {
+      case 'pending':
+        return colors.warning;
+      case 'processing':
+        return colors.info;
+      case 'shipped':
+        return colors.primary;
+      case 'delivered':
+        return colors.success;
+      case 'cancelled':
+        return colors.error;
+      default:
+        return colors.darkGray;
+    }
+  };
+  
+  // Get status icon based on order status
+  const getStatusIcon = (status: Order['status']) => {
+    switch (status) {
+      case 'pending':
+        return 'clock';
+      case 'processing':
+        return 'refresh-cw';
+      case 'shipped':
+        return 'truck';
+      case 'delivered':
+        return 'check-circle';
+      case 'cancelled':
+        return 'x-circle';
+      default:
+        return 'help-circle';
+    }
+  };
+  
+  // Format date string
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+  
+  // Render order item
+  const renderOrderItem = ({ item }: { item: Order }) => (
+    <TouchableOpacity
+      style={styles.orderCard}
+      onPress={() => viewOrderDetails(item._id)}
+    >
+      <View style={styles.orderHeader}>
+        <Text style={styles.orderNumber}>Order #{item.orderNumber}</Text>
+        <Text style={styles.orderDate}>{formatDate(item.createdAt)}</Text>
+      </View>
+      
+      <View style={styles.orderDetails}>
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Items:</Text>
+          <Text style={styles.detailValue}>{item.items.length}</Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Total:</Text>
+          <Text style={styles.detailValue}>{formatCurrency(item.totalAmount)}</Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Payment:</Text>
+          <View style={[
+            styles.statusBadge,
+            { backgroundColor: item.paymentStatus === 'paid' ? colors.success + '20' : colors.warning + '20' }
+          ]}>
+            <Text style={[
+              styles.statusText,
+              { color: item.paymentStatus === 'paid' ? colors.success : colors.warning }
+            ]}>
+              {item.paymentStatus.charAt(0).toUpperCase() + item.paymentStatus.slice(1)}
+            </Text>
+          </View>
+        </View>
+      </View>
+      
+      <View style={styles.orderFooter}>
+        <View style={[
+          styles.statusBadge,
+          { backgroundColor: getStatusColor(item.status) + '20' }
+        ]}>
+          <Feather
+            name={getStatusIcon(item.status)}
+            size={14}
+            color={getStatusColor(item.status)}
+            style={styles.statusIcon}
+          />
+          <Text style={[
+            styles.statusText,
+            { color: getStatusColor(item.status) }
+          ]}>
+            {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+          </Text>
+        </View>
+        
+        <TouchableOpacity
+          style={styles.detailsButton}
+          onPress={() => viewOrderDetails(item._id)}
+        >
+          <Text style={styles.detailsButtonText}>View Details</Text>
+          <Feather name="chevron-right" size={16} color={colors.primary} />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
+  
+  // Render empty state
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <Feather name="shopping-bag" size={60} color={colors.lightGray} />
+      <Text style={styles.emptyTitle}>No Orders Yet</Text>
+      <Text style={styles.emptyText}>
+        You haven't placed any orders yet. Start shopping to see your order history here.
+      </Text>
+      <TouchableOpacity
+        style={styles.shopNowButton}
+        onPress={() => navigation.navigate('Home')}
+      >
+        <Text style={styles.shopNowText}>Shop Now</Text>
+      </TouchableOpacity>
+    </View>
+  );
+  
+  return (
+    <SafeAreaView style={styles.container}>
+      <Header title="Order History" showBack={true} />
+      
+      {loading && !refreshing ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={orders}
+          keyExtractor={(item) => item._id}
+          renderItem={renderOrderItem}
+          ListEmptyComponent={renderEmptyState}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+        />
+      )}
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  listContent: {
+    flexGrow: 1,
+    padding: spacing.md,
+  },
+  orderCard: {
+    backgroundColor: colors.white,
+    borderRadius: 8,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    ...shadows.sm,
+  },
+  orderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.lightGray,
+  },
+  orderNumber: {
+    ...typography.body1,
+    fontWeight: '600' as '600',
+    color: colors.text,
+  } as TextStyle,
+  orderDate: {
+    ...typography.caption,
+    color: colors.darkGray,
+  } as TextStyle,
+  orderDetails: {
+    marginBottom: spacing.md,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  detailLabel: {
+    ...typography.body2,
+    color: colors.darkGray,
+  } as TextStyle,
+  detailValue: {
+    ...typography.body2,
+    fontWeight: '600' as '600',
+    color: colors.text,
+  } as TextStyle,
+  orderFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.lightGray,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: 4,
+  },
+  statusIcon: {
+    marginRight: spacing.xs,
+  },
+  statusText: {
+    ...typography.caption,
+    fontWeight: '600' as '600',
+  } as TextStyle,
+  detailsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  detailsButtonText: {
+    ...typography.body2,
+    color: colors.primary,
+    fontWeight: '600' as '600',
+    marginRight: spacing.xs,
+  } as TextStyle,
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  emptyTitle: {
+    ...typography.h3,
+    color: colors.text,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  } as TextStyle,
+  emptyText: {
+    ...typography.body2,
+    color: colors.darkGray,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
+  } as TextStyle,
+  shopNowButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    borderRadius: 8,
+  },
+  shopNowText: {
+    ...typography.button,
+    color: colors.white,
+  } as TextStyle,
+});
+
+export default OrderHistoryScreen; 
