@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react'
 import {
   View,
   Text,
@@ -9,49 +9,57 @@ import {
   Platform,
   ScrollView,
   Alert,
-} from 'react-native';
-import { colors, spacing, typography } from '../../utils/theme';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../../navigation/types';
-import useAuth from '../../hooks/useAuth';
+} from 'react-native'
+import {Picker} from '@react-native-picker/picker'
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
+import {colors, spacing, typography} from '../../utils/theme'
+import {NativeStackScreenProps} from '@react-navigation/native-stack'
+import {AuthStackParamList} from '../../navigation/types'
+import useAuth from '../../hooks/useAuth'
+import {RegisterData} from '../../api/auth'
 
-const RegisterScreen = ({ navigation }: Props) => {
-  const { register, isLoading } = useAuth();
-  
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>
+
+const RegisterScreen = ({navigation}: Props) => {
+  const {register, isLoading} = useAuth()
+
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [errors, setErrors] = useState<{[key: string]: string}>({})
+  const [role, setRole] = useState<RegisterData['role']>('customer')
 
   const validateForm = () => {
-    const newErrors: {[key: string]: string} = {};
-    
+    const newErrors: {[key: string]: string} = {}
+
     if (!name.trim()) {
-      newErrors.name = 'Name is required';
+      newErrors.name = 'Name is required'
     }
-    
+
     if (!email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'Email is required'
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = 'Email is invalid'
     }
-    
+
     if (!password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'Password is required'
     } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = 'Password must be at least 6 characters'
     }
-    
+
     if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = 'Passwords do not match'
     }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+
+    if (!role) {
+      newErrors.role = 'Role must be provided'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleRegister = async () => {
     if (validateForm()) {
@@ -59,23 +67,21 @@ const RegisterScreen = ({ navigation }: Props) => {
         const success = await register({
           name,
           email,
-          password
-        });
-        
+          password,
+          role,
+        })
+
         if (!success) {
-          Alert.alert('Registration Failed', 'Could not create your account. Please try again.');
+          Alert.alert('Registration Failed', 'Could not create your account. Please try again.')
         }
       } catch (error: any) {
-        Alert.alert('Registration Error', error.message || 'Failed to register. Please try again later.');
+        Alert.alert('Registration Error', error.message || 'Failed to register. Please try again later.')
       }
     }
-  };
+  }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.title}>Create Account</Text>
@@ -89,8 +95,8 @@ const RegisterScreen = ({ navigation }: Props) => {
               style={styles.input}
               value={name}
               onChangeText={setName}
-              placeholder="Enter your full name"
-              autoCapitalize="words"
+              placeholder='Enter your full name'
+              autoCapitalize='words'
             />
             {errors.name ? <Text style={styles.errorText}>{errors.name}</Text> : null}
           </View>
@@ -101,10 +107,10 @@ const RegisterScreen = ({ navigation }: Props) => {
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              placeholder="Enter your email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
+              placeholder='Enter your email'
+              keyboardType='email-address'
+              autoCapitalize='none'
+              autoComplete='email'
             />
             {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
           </View>
@@ -115,7 +121,7 @@ const RegisterScreen = ({ navigation }: Props) => {
               style={styles.input}
               value={password}
               onChangeText={setPassword}
-              placeholder="Enter your password"
+              placeholder='Enter your password'
               secureTextEntry
             />
             {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
@@ -127,17 +133,30 @@ const RegisterScreen = ({ navigation }: Props) => {
               style={styles.input}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              placeholder="Confirm your password"
+              placeholder='Confirm your password'
               secureTextEntry
             />
             {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
           </View>
 
-          <TouchableOpacity 
-            style={[styles.button, isLoading && styles.buttonDisabled]} 
+          {/* Role Picker */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Select Role</Text>
+            <Picker
+              selectedValue={role}
+              onValueChange={(itemValue: RegisterData['role']) => setRole(itemValue)}
+              style={styles.picker}>
+              <Picker.Item label='Customer' value='customer' />
+              <Picker.Item label='Vendor' value='vendor' />
+              <Picker.Item label='Admin' value='admin' />
+            </Picker>
+            {errors.role ? <Text style={styles.errorText}>{errors.role}</Text> : null}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, isLoading && styles.buttonDisabled]}
             onPress={handleRegister}
-            disabled={isLoading}
-          >
+            disabled={isLoading}>
             <Text style={styles.buttonText}>{isLoading ? 'Signing Up...' : 'Sign Up'}</Text>
           </TouchableOpacity>
 
@@ -150,8 +169,8 @@ const RegisterScreen = ({ navigation }: Props) => {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -182,7 +201,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: spacing.lg,
     shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
@@ -202,6 +221,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: spacing.md,
     fontSize: typography.body1.fontSize,
+  },
+  picker: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    padding: spacing.md,
   },
   errorText: {
     color: colors.error,
@@ -238,6 +263,6 @@ const styles = StyleSheet.create({
     fontWeight: typography.body2.fontWeight as any,
     color: colors.primary,
   },
-});
+})
 
-export default RegisterScreen; 
+export default RegisterScreen

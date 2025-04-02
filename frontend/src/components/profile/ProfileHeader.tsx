@@ -1,145 +1,136 @@
-import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-  TextStyle,
-  Image,
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import { API_URL } from '@env';
-import { colors, spacing, typography, borderRadius } from '../../utils/theme';
-import { userService } from '../../services/api';
-import { useDispatch } from 'react-redux';
-import { updateUserProfile } from '../../store/slices/authSlice';
+import React, {useState, useEffect} from 'react'
+import {StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Alert, TextStyle, Image} from 'react-native'
+import {Feather} from '@expo/vector-icons'
+import * as ImagePicker from 'expo-image-picker'
+import {API_URL} from '@env'
+import {colors, spacing, typography, borderRadius} from '../../utils/theme'
+import {userService} from '../../services/api'
+import {useDispatch} from 'react-redux'
+import {updateUserProfile} from '../../store/slices/authSlice'
 
 interface ProfileHeaderProps {
-  user: any;
-  onEditPress: () => void;
+  user: any
+  onEditPress: () => void
 }
 
-const createImageFormData = (uri: string,fileName:string) => {
-  const filename = fileName;
+const createImageFormData = (uri: string, fileName: string) => {
+  const filename = fileName
   // This extracts the file extension (.jpg, .png, etc.)
-  const match = /\.(\w+)$/.exec(filename);
-  const type = match ? `image/${match[1]}` : 'image/jpeg';
+  const match = /\.(\w+)$/.exec(filename)
+  const type = match ? `image/${match[1]}` : 'image/jpeg'
 
-  const formData = new FormData();
+  const formData = new FormData()
   formData.append('avatar', {
     uri,
     name: filename,
     type,
-  } as any);
+  } as any)
 
-  console.log('Form data created:', { filename, type });
-  return formData;
-};
+  console.log('Form data created:', {filename, type})
+  return formData
+}
 
-const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onEditPress }) => {
-  const dispatch = useDispatch();
-  const [uploading, setUploading] = useState(false);
-  const [avatarSource, setAvatarSource] = useState<string | null>(null);
+const ProfileHeader: React.FC<ProfileHeaderProps> = ({user, onEditPress}) => {
+  const dispatch = useDispatch()
+  const [uploading, setUploading] = useState(false)
+  const [avatarSource, setAvatarSource] = useState<string | null>(null)
 
   useEffect(() => {
     if (user?.avatar) {
-      setAvatarSource(user.avatar);
+      setAvatarSource(user.avatar)
     }
-  }, [user]);
+  }, [user])
 
   // Get user initials for avatar
   const getUserInitials = () => {
     if (user?.name) {
-      return user.name.substring(0, 2).toUpperCase();
+      return user.name.substring(0, 2).toUpperCase()
     }
-    return 'U';
-  };
+    return 'U'
+  }
 
   // Format avatar URL
   const getAvatarUri = (path: string) => {
-    if (!path) return null;
-    
+    if (!path) return null
+    return
     if (path.startsWith('http')) {
-      return path;
+      return path
     }
-    
+
     // Add base URL for relative paths
-    const fullUrl = `${API_URL}${path.startsWith('/') ? path : `/${path}`}`;
-    console.log('Avatar URL:', fullUrl);
-    return fullUrl;
-  };
+    const fullUrl = `${API_URL}${path.startsWith('/') ? path : `/${path}`}`
+    console.log('Avatar URL:', fullUrl)
+    return fullUrl
+  }
 
   // Handle avatar upload
   const handleAvatarUpload = async () => {
     try {
       // Request permission to access the image library
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync()
+
       if (!permissionResult.granted) {
-        Alert.alert('Permission Denied', 'You need to grant permission to access your photo library');
-        return;
+        Alert.alert('Permission Denied', 'You need to grant permission to access your photo library')
+        return
       }
-      
+
       // Launch the image picker
       const pickerResult = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
-      });
-      
+      })
+
       if (pickerResult.canceled) {
-        return;
+        return
       }
-      
+
       // Set uploading state
-      setUploading(true);
-      
+      setUploading(true)
+
       // Create a form data object
-      const uri = pickerResult.assets[0].uri;
-      const fileName = pickerResult.assets[0].fileName || 'photo.jpg';
-      const formData = createImageFormData(uri,fileName);
-      
-      console.log('Uploading avatar...', formData);
-      
+      const uri = pickerResult.assets[0].uri
+      const fileName = pickerResult.assets[0].fileName || 'photo.jpg'
+      const formData = createImageFormData(uri, fileName)
+
+      console.log('Uploading avatar...', formData)
+
       // Upload the image
       try {
-        const response = await userService.uploadAvatar(formData);
-        console.log('Upload response:', response.data);
-        
+        const response = await userService.uploadAvatar(formData)
+        console.log('Upload response:', response.data)
+
         if (response.data && response.data.success) {
-          const newAvatarPath = response.data.data.avatar;
-          setAvatarSource(newAvatarPath);
-          
+          const newAvatarPath = response.data.data.avatar
+          setAvatarSource(newAvatarPath)
+
           // Update the user in Redux state
-          dispatch(updateUserProfile({ avatar: newAvatarPath }));
-          
-          Alert.alert('Success', 'Profile picture updated successfully');
+          dispatch(updateUserProfile({avatar: newAvatarPath}))
+
+          Alert.alert('Success', 'Profile picture updated successfully')
         } else {
-          throw new Error(response.data?.message || 'Upload failed');
+          throw new Error(response.data?.message || 'Upload failed')
         }
       } catch (error) {
-        console.error('Error uploading avatar:', error);
-        Alert.alert('Upload Failed', 'Failed to upload profile picture. Please try again.');
+        console.error('Error uploading avatar:', error)
+        Alert.alert('Upload Failed', 'Failed to upload profile picture. Please try again.')
       } finally {
-        setUploading(false);
+        setUploading(false)
       }
     } catch (error) {
-      console.error('Error selecting image:', error);
-      Alert.alert('Error', 'An error occurred while selecting the image');
-      setUploading(false);
+      console.error('Error selecting image:', error)
+      Alert.alert('Error', 'An error occurred while selecting the image')
+      setUploading(false)
     }
-  };
+  }
 
   return (
     <View style={styles.profileHeader}>
       <TouchableOpacity onPress={handleAvatarUpload} disabled={uploading}>
         {avatarSource ? (
           <Image
-            source={{ uri: getAvatarUri(avatarSource) || undefined }}
+            source={{uri: getAvatarUri(avatarSource) || undefined}}
             style={styles.avatar}
             defaultSource={require('../../assets/images/default-avatar.png')}
           />
@@ -149,14 +140,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onEditPress }) => {
           </View>
         )}
         {uploading ? (
-          <ActivityIndicator size="small" color={colors.primary} style={styles.uploadIndicator} />
+          <ActivityIndicator size='small' color={colors.primary} style={styles.uploadIndicator} />
         ) : (
           <View style={styles.editAvatarButton}>
-            <Feather name="camera" size={14} color={colors.white} />
+            <Feather name='camera' size={14} color={colors.white} />
           </View>
         )}
       </TouchableOpacity>
-      
+
       <View style={styles.profileInfo}>
         <Text style={styles.userName}>{user?.name || 'User'}</Text>
         <Text style={styles.userEmail}>{user?.email}</Text>
@@ -166,17 +157,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user, onEditPress }) => {
           </View>
         )}
       </View>
-      
-      <TouchableOpacity
-        style={styles.editButton}
-        onPress={onEditPress}
-      >
-        <Feather name="edit" size={18} color={colors.white} />
+
+      <TouchableOpacity style={styles.editButton} onPress={onEditPress}>
+        <Feather name='edit' size={18} color={colors.white} />
         <Text style={styles.editButtonText}>Edit Profile</Text>
       </TouchableOpacity>
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   profileHeader: {
@@ -264,6 +252,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 0,
   },
-});
+})
 
-export default ProfileHeader; 
+export default ProfileHeader
