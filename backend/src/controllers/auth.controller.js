@@ -22,17 +22,18 @@ const sendTokenResponse = (user, statusCode, res) => {
   }
 
   // Remove password from user object
-  const userData = user.toObject ? user.toObject() : user;
-  if (userData.password) delete userData.password;
+  const userData = user.toObject ? user.toObject() : user
+  if (userData.password) delete userData.password
 
-  res.status(statusCode)
+  res
+    .status(statusCode)
     .cookie('token', token, options)
     .json({
       success: true,
       data: {
         token,
-        user: userData
-      }
+        user: userData,
+      },
     })
 }
 
@@ -63,7 +64,7 @@ exports.uploadAvatar = async (req, res, next) => {
     const uploadPath = path.join(__dirname, `../../public/uploads/avatars/${filename}`)
 
     // Move file to the upload directory
-    file.mv(uploadPath, async err => {
+    file.mv(uploadPath, async (err) => {
       if (err) {
         console.error('File upload error:', err)
         return next(new ErrorResponse('Problem with file upload', 500))
@@ -71,30 +72,30 @@ exports.uploadAvatar = async (req, res, next) => {
 
       // Update user avatar in database
       const avatarUrl = `/uploads/avatars/${filename}`
-      
+
       try {
         await User.findByIdAndUpdate(
-          req.user._id, 
-          { 
+          req.user._id,
+          {
             avatar: {
               public_id: filename,
-              url: avatarUrl
-            }
+              url: avatarUrl,
+            },
           },
-          { 
+          {
             new: true,
-            runValidators: false // Skip validation to make avatar optional
+            runValidators: false, // Skip validation to make avatar optional
           }
         )
-        
+
         res.status(200).json({
           success: true,
-          data: { avatarUrl },
-          message: 'Avatar uploaded successfully'
+          data: {avatarUrl},
+          message: 'Avatar uploaded successfully',
         })
       } catch (dbError) {
         // Remove uploaded file if database update fails
-        fs.unlink(uploadPath, unlinkErr => {
+        fs.unlink(uploadPath, (unlinkErr) => {
           if (unlinkErr) console.error('Error removing uploaded file:', unlinkErr)
         })
         throw dbError
