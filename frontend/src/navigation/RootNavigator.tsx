@@ -5,6 +5,7 @@ import { ActivityIndicator, StyleSheet, View, Text } from 'react-native';
 import { RootStackParamList } from './types';
 import { useAuth } from '../context/AuthContext';
 import { colors, typography } from '../utils/theme';
+import { navigationRef } from './navigationService';
 
 // Import navigators
 import AuthNavigator from './AuthNavigator';
@@ -23,6 +24,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const RootNavigator: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const [isAppReady, setIsAppReady] = useState(false);
+  const prevAuthState = useRef(isAuthenticated);
 
   // Wait for auth state to be loaded
   useEffect(() => {
@@ -33,12 +35,20 @@ const RootNavigator: React.FC = () => {
     }
   }, [isLoading, isAuthenticated]);
 
+  // Handle auth state changes after initial load
+  useEffect(() => {
+    if (isAppReady && prevAuthState.current !== isAuthenticated) {
+      console.log('Auth state changed:', isAuthenticated);
+      prevAuthState.current = isAuthenticated;
+    }
+  }, [isAuthenticated, isAppReady]);
+
   if (isLoading || !isAppReady) {
     return <SplashScreen />;
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
           <Stack.Screen 

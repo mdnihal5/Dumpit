@@ -1,96 +1,108 @@
-import React, { forwardRef } from 'react';
-import { View, Text, TextInput, StyleSheet, TextInputProps, ViewStyle, StyleProp, TextStyle } from 'react-native';
-import { colors, typography } from '../theme';
+import React from 'react';
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  Text,
+  TextInputProps,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
+import { colors, spacing, typography, borderRadius } from '../utils/theme';
 
 interface InputProps extends TextInputProps {
-  label: string;
+  label?: string;
   error?: string;
   containerStyle?: ViewStyle;
+  labelStyle?: TextStyle;
+  inputStyle?: ViewStyle;
   leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
   disabled?: boolean;
 }
 
-const Input = forwardRef<TextInput, InputProps>(({ 
-  label, 
-  error, 
-  containerStyle, 
-  style, 
-  leftIcon, 
+const Input: React.FC<InputProps> = ({
+  label,
+  error,
+  containerStyle,
+  labelStyle,
+  inputStyle,
+  leftIcon,
+  rightIcon,
   disabled,
-  onChangeText,
-  value,
-  ...props 
-}, ref) => {
-  
-  // Use the value prop directly and pass onChangeText correctly to avoid re-render issues
+  ...restProps
+}) => {
   return (
     <View style={[styles.container, containerStyle]}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.inputContainer}>
-        {leftIcon && <View style={styles.iconContainer}>{leftIcon}</View>}
+      {label && <Text style={[styles.label, labelStyle]}>{label}</Text>}
+      <View style={[
+        styles.inputContainer,
+        error ? styles.inputError : null,
+        disabled ? styles.inputDisabled : null,
+        inputStyle
+      ]}>
+        {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
         <TextInput
-          ref={ref}
-          style={[
-            styles.input,
-            error ? styles.inputError : null,
-            leftIcon ? styles.inputWithIcon : null,
-            disabled ? styles.inputDisabled : null,
-            style,
-          ] as StyleProp<TextStyle>}
-          placeholderTextColor={colors.textSecondary}
+          style={[styles.input, disabled && styles.disabledText]}
+          placeholderTextColor={colors.mediumGray}
           editable={!disabled}
-          onChangeText={onChangeText} // Directly pass the onChangeText
-          value={value} // Directly bind the value prop
-          {...props}
+          {...restProps}
         />
+        {rightIcon && <View style={styles.rightIcon}>{rightIcon}</View>}
       </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
-});
+};
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: spacing.sm,
+    width: '100%',
   },
   label: {
-    ...typography.body2,
+    fontSize: typography.fontSizes.sm,
+    fontWeight: '500',
+    marginBottom: spacing.xs,
     color: colors.text,
-    marginBottom: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    position: 'relative',
-  },
-  iconContainer: {
-    position: 'absolute',
-    left: 12,
-    zIndex: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.white,
+    minHeight: 50,
+    paddingHorizontal: spacing.sm,
   },
   input: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    padding: 12,
-    ...typography.body1,
-  },
-  inputWithIcon: {
-    paddingLeft: 40,
+    fontSize: typography.fontSizes.md,
+    color: colors.text,
+    paddingVertical: spacing.sm,
   },
   inputError: {
     borderColor: colors.error,
   },
   inputDisabled: {
-    backgroundColor: colors.grey[100],
-    opacity: 0.7,
+    backgroundColor: colors.lightGray,
+    borderColor: colors.border,
+  },
+  disabledText: {
+    color: colors.mediumGray,
   },
   errorText: {
-    ...typography.caption,
     color: colors.error,
-    marginTop: 4,
+    fontSize: typography.fontSizes.xs,
+    marginTop: spacing.xs,
+  },
+  leftIcon: {
+    marginRight: spacing.xs,
+  },
+  rightIcon: {
+    marginLeft: spacing.xs,
   },
 });
 
-export default Input;
+export default Input; 

@@ -5,7 +5,8 @@ import { MainStackParamList } from './types';
 import MainTabNavigator from './MainTabNavigator';
 
 // Import the screens that definitely exist
-import SavedAddressesScreen from '../screens/SavedAddressesScreen';
+import SavedAddressesScreen from '../screens/main/SavedAddressesScreen';
+import AddAddressScreen from '../screens/main/AddAddressScreen';
 import ChangePasswordScreen from '../screens/auth/ChangePasswordScreen';
 import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
@@ -47,6 +48,8 @@ const MainNavigator: React.FC = () => {
       <Stack.Screen name="EditProfile" component={PlaceholderScreen} />
       <Stack.Screen name="Addresses" component={PlaceholderScreen} />
       <Stack.Screen name="SavedAddresses" component={SavedAddressesScreen} />
+      <Stack.Screen name="AddAddress" component={AddAddressScreen} />
+      <Stack.Screen name="EditAddress" component={PlaceholderScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="Privacy" component={PlaceholderScreen} />
       

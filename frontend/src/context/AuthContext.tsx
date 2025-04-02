@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { authService, userService } from '../services/api';
+import { authService, userService } from '../api/services';
 import { Platform, ToastAndroid, Alert } from 'react-native';
 import { User, LoginRequest, RegisterRequest, ChangePasswordRequest } from '../api/types';
+import * as NavigationService from '../navigation/navigationService';
 
 // Auth context state interface
 export interface AuthContextType {
@@ -117,6 +118,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         // Set user data directly from response
         setUser(user);
+
+        // Navigate to main app (if navigationRef is ready)
+        if (NavigationService.navigationRef.current) {
+          NavigationService.resetToMain();
+        }
+
         return true;
       }
       
@@ -147,6 +154,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         // Set user directly
         setUser(user);
+
+        // Navigate to main app (if navigationRef is ready)
+        if (NavigationService.navigationRef.current) {
+          NavigationService.resetToMain();
+        }
+
         return true;
       }
       
@@ -174,6 +187,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await AsyncStorage.removeItem('token');
       setToken(null);
       setUser(null);
+
+      // Navigate to auth stack (if navigationRef is ready)
+      if (NavigationService.navigationRef.current) {
+        NavigationService.resetToAuth();
+      }
+
       setIsLoading(false);
     }
   }, []);

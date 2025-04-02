@@ -8,14 +8,26 @@ import {
   Platform, 
   Text, 
   TouchableOpacity,
-  TextInput
+  Switch
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../../components/Header';
+import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { userService } from '../../api/services';
 import { AddressData } from '../../api/types';
+import { colors, spacing, typography } from '../../utils/theme';
+
+interface Errors {
+  name?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  phone?: string;
+}
 
 const AddAddressScreen = () => {
   const navigation = useNavigation();
@@ -28,14 +40,60 @@ const AddAddressScreen = () => {
     postalCode: '',
     country: '',
     phone: '',
-    isDefault: false
+    isDefault: false,
   });
+  const [errors, setErrors] = useState<Errors>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: Errors = {};
+    
+    // Validate name
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    // Validate address
+    if (!formData.address.trim()) {
+      newErrors.address = 'Address is required';
+    }
+    
+    // Validate city
+    if (!formData.city.trim()) {
+      newErrors.city = 'City is required';
+    }
+    
+    // Validate state
+    if (!formData.state.trim()) {
+      newErrors.state = 'State is required';
+    }
+    
+    // Validate postal code
+    if (!formData.postalCode.trim()) {
+      newErrors.postalCode = 'Postal code is required';
+    }
+    
+    // Validate country
+    if (!formData.country.trim()) {
+      newErrors.country = 'Country is required';
+    }
+    
+    // Validate phone
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^\d{10,15}$/.test(formData.phone.replace(/[^0-9]/g, ''))) {
+      newErrors.phone = 'Enter a valid phone number';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (field: keyof AddressData, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user types
+    if (errors[field as keyof Errors]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
   };
 
   const toggleDefault = () => {
@@ -46,15 +104,13 @@ const AddAddressScreen = () => {
   };
 
   const handleSubmit = async () => {
-    // Validate form
-    if (!formData.name || !formData.address || !formData.city || 
-        !formData.state || !formData.postalCode || !formData.country || !formData.phone) {
-      Alert.alert('Error', 'Please fill in all required fields');
+    if (!validateForm()) {
       return;
     }
-
+    
     try {
       setLoading(true);
+      
       const response = await userService.addAddress(formData);
       
       if (response.data?.success) {
@@ -64,7 +120,7 @@ const AddAddressScreen = () => {
         Alert.alert('Error', response.data?.message || 'Failed to add address');
       }
     } catch (error) {
-      console.error('Error adding address:', error);
+      console.error('Add address error:', error);
       Alert.alert('Error', 'An error occurred while adding the address');
     } finally {
       setLoading(false);
@@ -76,119 +132,97 @@ const AddAddressScreen = () => {
       <Header title="Add New Address" showBack onBackPress={() => navigation.goBack()} />
       
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboardContainer}
       >
-        <ScrollView style={styles.scrollView}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.formContainer}>
-            {/* Name / Title */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Name / Title</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Home, Office, etc."
-                value={formData.name}
-                onChangeText={(value) => handleChange('name', value)}
-                returnKeyType="next"
-              />
-            </View>
+            <Input 
+              label="Name / Title"
+              placeholder="Home, Office, etc."
+              value={formData.name}
+              onChangeText={(text) => handleChange('name', text)}
+              error={errors.name}
+            />
             
-            {/* Street Address */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Street Address</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Street address or P.O. Box"
-                value={formData.address}
-                onChangeText={(value) => handleChange('address', value)}
-                returnKeyType="next"
-              />
-            </View>
+            <Input 
+              label="Street Address"
+              placeholder="Street address or P.O. Box"
+              value={formData.address}
+              onChangeText={(text) => handleChange('address', text)}
+              error={errors.address}
+            />
             
-            {/* City */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>City</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="City"
-                value={formData.city}
-                onChangeText={(value) => handleChange('city', value)}
-                returnKeyType="next"
-              />
-            </View>
+            <Input 
+              label="City"
+              placeholder="Enter city"
+              value={formData.city}
+              onChangeText={(text) => handleChange('city', text)}
+              error={errors.city}
+            />
             
-            {/* State and Postal Code */}
             <View style={styles.row}>
-              <View style={[styles.inputContainer, styles.halfInput]}>
-                <Text style={styles.label}>State</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="State"
-                  value={formData.state}
-                  onChangeText={(value) => handleChange('state', value)}
-                  returnKeyType="next"
-                />
-              </View>
+              <Input 
+                label="State/Province"
+                placeholder="Enter state"
+                value={formData.state}
+                onChangeText={(text) => handleChange('state', text)}
+                error={errors.state}
+                containerStyle={styles.halfInput}
+              />
               
-              <View style={[styles.inputContainer, styles.halfInput]}>
-                <Text style={styles.label}>Postal Code</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Postal Code"
-                  value={formData.postalCode}
-                  onChangeText={(value) => handleChange('postalCode', value)}
-                  keyboardType="numeric"
-                  returnKeyType="next"
-                />
-              </View>
-            </View>
-            
-            {/* Country */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Country</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Country"
-                value={formData.country}
-                onChangeText={(value) => handleChange('country', value)}
-                returnKeyType="next"
+              <Input 
+                label="Postal Code"
+                placeholder="Enter postal code"
+                value={formData.postalCode}
+                onChangeText={(text) => handleChange('postalCode', text)}
+                error={errors.postalCode}
+                keyboardType="numeric"
+                containerStyle={styles.halfInput}
               />
             </View>
             
-            {/* Phone */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Phone Number</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Phone Number"
-                value={formData.phone}
-                onChangeText={(value) => handleChange('phone', value)}
-                keyboardType="phone-pad"
-                returnKeyType="done"
+            <Input 
+              label="Country"
+              placeholder="Enter country"
+              value={formData.country}
+              onChangeText={(text) => handleChange('country', text)}
+              error={errors.country}
+            />
+            
+            <Input 
+              label="Phone Number"
+              placeholder="Enter phone number"
+              value={formData.phone}
+              onChangeText={(text) => handleChange('phone', text)}
+              error={errors.phone}
+              keyboardType="phone-pad"
+            />
+            
+            <View style={styles.switchContainer}>
+              <Text style={styles.switchLabel}>Set as default address</Text>
+              <Switch
+                value={formData.isDefault}
+                onValueChange={toggleDefault}
+                trackColor={{ false: colors.lightGray, true: colors.primaryLight }}
+                thumbColor={formData.isDefault ? colors.primary : colors.white}
               />
             </View>
             
-            {/* Default Checkbox */}
-            <TouchableOpacity
-              style={styles.checkboxContainer}
-              onPress={toggleDefault}
-            >
-              <View style={[styles.checkbox, formData.isDefault && styles.checkboxChecked]}>
-                {formData.isDefault && <Icon name="check" size={16} color="#fff" />}
-              </View>
-              <Text style={styles.checkboxLabel}>Set as default address</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Save Address"
+                onPress={handleSubmit}
+                disabled={loading}
+                loading={loading}
+                fullWidth
+              />
+            </View>
           </View>
         </ScrollView>
-        
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Save Address"
-            onPress={handleSubmit}
-            loading={loading}
-            fullWidth
-          />
-        </View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -197,70 +231,38 @@ const AddAddressScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background,
   },
-  keyboardAvoidingView: {
+  keyboardContainer: {
     flex: 1,
   },
-  scrollView: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
   },
   formContainer: {
-    padding: 16,
+    padding: spacing.md,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#fff',
-  },
   halfInput: {
     width: '48%',
   },
-  buttonContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  checkboxContainer: {
+  switchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 16,
+    justifyContent: 'space-between',
+    marginVertical: spacing.md,
+    paddingVertical: spacing.sm,
   },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginRight: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+  switchLabel: {
+    fontSize: typography.fontSizes.md,
+    color: colors.text,
   },
-  checkboxChecked: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
-  },
-  checkboxLabel: {
-    fontSize: 16,
-    color: '#333',
+  buttonContainer: {
+    marginTop: spacing.lg,
+    marginBottom: spacing.xl,
   },
 });
 
