@@ -31,4 +31,7 @@ router.post('/', validate(createCategorySchema), createCategory)
 router.put('/:id', validate(updateCategorySchema), updateCategory)
 router.delete('/:id', validate(deleteCategorySchema), deleteCategory)
 
+
+//made changes here 
+
 module.exports = router
